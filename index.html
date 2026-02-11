@@ -53,18 +53,25 @@
           </select>
         </div>
       </div>
+<div class="flex gap-2">
+  <button id="generateBtn"
+    class="flex-1 bg-padelGreen text-gray-900 font-semibold py-2 rounded-md text-sm active:scale-95 transition">
+    Generate Matches
+  </button>
 
-      <div class="flex gap-2">
-        <button id="generateBtn"
-          class="flex-1 bg-padelGreen text-gray-900 font-semibold py-2 rounded-md text-sm active:scale-95 transition">
-          Generate Matches
-        </button>
-        <button id="resetBtn"
-          class="flex-1 border border-red-500 text-red-400 font-semibold py-2 rounded-md text-sm active:scale-95 transition">
-          Reset
-        </button>
+  <button id="resetBtn"
+    class="flex-1 border border-red-500 text-red-500 font-semibold py-2 rounded-md text-sm active:scale-95 transition">
+    Reset
+  </button>
+</div>
+
+<button id="nextRoundBtn"
+  class="w-full bg-gray-700 text-gray-200 font-semibold py-2 rounded-md text-sm active:scale-95 transition hidden">
+  Next Round
+</button>
+      <div id="roundDisplay" class="text-center text-sm text-gray-400 mb-2 hidden">
+  Round 1
       </div>
-    </section>
 
     <!-- Matches & Resting -->
     <section id="matchesSection" class="mb-4 hidden">
@@ -97,11 +104,20 @@
   </div>
 
   <script>
-    // State
-    let players = [];
-    let matches = [];
-    let leaderboard = {};
-    let mode = 'classic';
+  // State
+let players = [];
+let matches = [];
+let leaderboard = {};
+let mode = 'classic';
+let currentRound = 1;
+
+function nextRound() {
+  currentRound++;
+  generateMatches(parseInt(courtsInput.value, 10));
+  renderMatches();
+  updateLeaderboard();
+  saveState();
+}
 
     const playersInput = document.getElementById('playersInput');
     const courtsInput = document.getElementById('courtsInput');
@@ -113,6 +129,8 @@
     const restingContainer = document.getElementById('restingContainer');
     const leaderboardSection = document.getElementById('leaderboardSection');
     const leaderboardBody = document.getElementById('leaderboardBody');
+    const nextRoundBtn = document.getElementById('nextRoundBtn');
+    const roundDisplay = document.getElementById('roundDisplay');
 
     modeSelect.addEventListener('change', () => {
       mode = modeSelect.value;
@@ -143,9 +161,10 @@
       renderMatches();
       updateLeaderboard();
       matchesSection.classList.remove('hidden');
-      leaderboardSection.classList.remove('hidden');
-    });
-
+      nextRoundBtn.classList.remove('hidden');
+    nextRoundBtn.addEventListener('click', () => {
+  nextRound();
+});
     resetBtn.addEventListener('click', () => {
       players = [];
       matches = [];
@@ -359,5 +378,16 @@
       });
     }
   </script>
+  function saveState() {
+  const state = {
+    players,
+    matches,
+    leaderboard,
+    mode,
+    courts: courtsInput.value,
+    playersText: playersInput.value
+  };
+  localStorage.setItem('padelState', JSON.stringify(state));
+}
 </body>
 </html>
