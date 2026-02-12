@@ -328,6 +328,7 @@ const rackyBrain = {
     // SAVE STATE
     function saveState() {
       const state = {
+        rackySay(rackyBrain.reactions.matchesGenerated);
         players,
         matches,
         leaderboard,
@@ -340,6 +341,7 @@ const rackyBrain = {
     }
 
     // LOAD STATE
+    rackySay(rackyBrain.greetings[0]);
     function loadState() {
       const saved = localStorage.getItem('padelState');
       if (!saved) return;
@@ -354,9 +356,11 @@ const rackyBrain = {
       modeSelect.value = state.mode || 'classic';
       courtsInput.value = state.courts || '';
       playersInput.value = state.playersText || '';
+      rackySay(rackyBrain.reactions.playersAdded);
 
       if (players.length > 0) {
         renderMatches();
+        rackySay(rackyBrain.reactions.matchesGenerated);
         updateLeaderboard();
         matchesSection.classList.remove('hidden');
         leaderboardSection.classList.remove('hidden');
