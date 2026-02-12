@@ -1,756 +1,301 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
- <!-- Firebase (Compat Version — works with your existing code) -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
-    authDomain: "padelpilot-4531f.firebaseapp.com",
-    databaseURL: "https://padelpilot-4531f-default-rtdb.firebaseio.com",
-    projectId: "padelpilot-4531f",
-    storageBucket: "padelpilot-4531f.appspot.com",
-    messagingSenderId: "866905934997",
-    appId: "1:866905934997:web:97c8b8ebc4ed35f9e41f9c",
-    measurementId: "G-ZZJ8EEHZD2"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-</script>
-  <meta charset="UTF-8">
-  <title>Padel Match Generator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <!-- Tailwind CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-</head>
-<body class="bg-gray-900 text-white p-6">
-  <div class="w-full bg-blue-800 text-white py-5 px-6 rounded-lg shadow-lg mb-6 flex items-center gap-4">
-  <div class="text-4xl">🎾</div>
-  <div>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PadelPilot Pro | Tournament Manager</title>
     
-    <h1 class="text-3xl font-bol<button id="createSessionBtn" class="bg-blue-600 px-4 py-2 rounded">
-  Create Session
-</button>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-<div id="sessionInfo" class="mt-4 text-green-400"></div>d">PadelPilot</h1>
-    <p class="text-sm opacity-90">Racky is ready to assist</p>
-  </div>
-  </div>
-
-  <h1 class="text-3xl font-bold mb-4">Padel Match Generator</h1>
-
-  <!-- INPUTS -->
-  <div class="mb-4">
-    <label class="block mb-1">Enter one player per line:</label>
-    <textarea id="playersInput" class="w-full p-2 bg-gray-800 rounded" rows="6"></textarea>
-  </div>
-
-  <div class="mb-4">
-    <label class="block mb-1">Number of courts:</label>
-    <input id="courtsInput" type="number" class="w-24 p-2 bg-gray-800 rounded">
-  </div>
-
-  <div class="mb-4">
-    <label class="block mb-1">Mode:</label>
-    <select id="modeSelect" class="p-2 bg-gray-800 rounded">
-      <option value="classic">Classic</option>
-      <option value="americano">Americano (Winner = 1, Loser = 0)</option>
-    </select>
-  </div>
-
-  <button id="generateBtn" class="bg-blue-600 px-4 py-2 rounded mr-2">Generate Matches</button>
-  <button id="resetBtn" class="bg-red-600 px-4 py-2 rounded">Reset</button>
-
-  <h2 id="roundDisplay" class="text-2xl font-bold mt-6 hidden">Round 1</h2>
-
-  <!-- MATCHES SECTION -->
-  <div id="matchesSection" class="mt-4 hidden">
-    <h3 class="text-xl font-semibold mb-2">Matches</h3>
-    <div id="matchesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-    <p id="restingContainer" class="mt-2 text-yellow-300"></p>
-  </div>
-
-  <!-- NEXT ROUND -->
-  <button id="nextRoundBtn" class="bg-green-600 px-4 py-2 rounded mt-4 hidden">Next Round</button>
-
-  <!-- LEADERBOARD -->
-  <div id="leaderboardSection" class="mt-8 hidden">
-    <h3 class="text-xl font-semibold mb-2">Leaderboard</h3>
-    <table class="w-full text-left">
-      <thead>
-        <tr>
-          <th class="px-2 py-1">#</th>
-          <th class="px-2 py-1">Player</th>
-          <th class="px-2 py-1">Points</th>
-          <th class="px-2 py-1">Matches</th>
-        </tr>
-      </thead>
-      <tbody id="leaderboardBody"></tbody>
-    </table>
-  </div>
-
-  <!-- SCRIPT -->
-  <script>
-    // RACKY'S BRAIN
-const rackyBrain = {
-  greetings: [
-    "Hey champ, ready to play?",
-    "Racky here — need a quick rule refresher?",
-    "Let’s get this round rolling!"
-  ],
-  rules: {
-    americano: "Americano: Each match is 24 points. Switch sides at 12.",
-    classic: "Classic scoring: 3 points for a win, 1 for a draw.",
-    goldenPoint: "Golden point: At 40–40, one point decides the game."
-  },
-  tips: [
-    "Rotate courts every round to keep things fair.",
-    "Try mixing strong and new players for balanced matches.",
-    "Remember to hydrate — padel gets intense fast."
-  ],
-  reactions: {
-    matchesGenerated: "Nice! I’ve prepared your courts. Good luck out there.",
-    scoresUpdated: "Scores updated. Smooth work!",
-    playersAdded: "Players loaded. Ready to generate matches?"
-  }
-};function rackySay(message) {
-  document.getElementById("mascotText").textContent = message;
-}
-    // STATE
-    let players = [];
-    let matches = [];
-    let leaderboard = {};
-    let currentRound = 1;
-
-    // DOM ELEMENTS
-    const playersInput = document.getElementById('playersInput');
-    const courtsInput = document.getElementById('courtsInput');
-    const modeSelect = document.getElementById('modeSelect');
-    const generateBtn = document.getElementById('generateBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const nextRoundBtn = document.getElementById('nextRoundBtn');
-    const matchesSection = document.getElementById('matchesSection');
-    const matchesContainer = document.getElementById('matchesContainer');
-    const restingContainer = document.getElementById('restingContainer');
-    const leaderboardSection = document.getElementById('leaderboardSection');
-    const leaderboardBody = document.getElementById('leaderboardBody');
-    const roundDisplay = document.getElementById('roundDisplay');
-
-    // SHUFFLE
-    function shuffle(arr) {
-      const a = [...arr];
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-      }
-      return a;
-    }
-
-    // INIT LEADERBOARD
-    function initLeaderboard() {
-      leaderboard = {};
-      players.forEach(p => {
-        leaderboard[p] = { points: 0, matches: 0 };
-      });
-    }
-
-    // GENERATE MATCHES
-    function generateMatches(courts) {
-      matches = [];
-      const shuffled = shuffle(players);
-
-      const groups = [];
-      for (let i = 0; i < shuffled.length; i += 4) {
-        groups.push(shuffled.slice(i, i + 4));
-      }
-
-      const usedGroups = groups.slice(0, courts);
-      const resting = groups.slice(courts).flat();
-
-      usedGroups.forEach((group, idx) => {
-        if (group.length < 4) return;
-        matches.push({
-          id: idx + 1,
-          court: idx + 1,
-          players: group,
-          scoreA: '',
-          scoreB: '',
-          scored: false
-        });
-      });
-
-      renderResting(resting);
-    }
-
-    // RENDER MATCHES
-    function renderMatches() {
-      matchesContainer.innerHTML = '';
-
-      matches.forEach(match => {
-        const div = document.createElement('div');
-        div.className = 'bg-gray-800 p-3 rounded';
-
-        div.innerHTML = `
-          <div class="font-semibold mb-1">Court ${match.court}</div>
-          <div class="text-sm mb-2">
-            <span class="text-green-300">${match.players[0]}</span> &
-            <span class="text-green-300">${match.players[1]}</span>
-            vs
-            <span class="text-blue-300">${match.players[2]}</span> &
-            <span class="text-blue-300">${match.players[3]}</span>
-          </div>
-          <div class="flex gap-2">
-            <input type="number" min="0" class="w-16 p-1 bg-gray-700 rounded text-center"
-              placeholder="A" data-match="${match.id}" data-team="A">
-            <input type="number" min="0" class="w-16 p-1 bg-gray-700 rounded text-center"
-              placeholder="B" data-match="${match.id}" data-team="B">
-          </div>
-        `;
-
-        matchesContainer.appendChild(div);
-      });
-    }
-
-    // RESTING PLAYERS
-    function renderResting(resting) {
-      restingContainer.textContent =
-        resting.length ? 'Resting: ' + resting.join(', ') : '';
-    }
-
-    // UPDATE LEADERBOARD
-    function updateLeaderboard() {
-      leaderboardBody.innerHTML = '';
-
-      const sorted = Object.entries(leaderboard)
-        .sort((a, b) => b[1].points - a[1].points);
-
-      sorted.forEach(([player, data], index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td class="px-2 py-1">${index + 1}</td>
-          <td class="px-2 py-1">${player}</td>
-          <td class="px-2 py-1">${data.points}</td>
-          <td class="px-2 py-1">${data.matches}</td>
-        `;
-        leaderboardBody.appendChild(row);
-      });
-    }
-
-    // APPLY SCORES
-    function applyScores(match) {
-      const a = parseInt(match.scoreA, 10);
-      const b = parseInt(match.scoreB, 10);
-
-      if (isNaN(a) || isNaN(b)) return;
-      if (match.scored) return;
-
-      match.scored = true;
-
-      const mode = modeSelect.value;
-
-      if (mode === 'classic') {
-        if (a > b) {
-          leaderboard[match.players[0]].points += 3;
-          leaderboard[match.players[1]].points += 3;
-        } else if (b > a) {
-          leaderboard[match.players[2]].points += 3;
-          leaderboard[match.players[3]].points += 3;
-        } else {
-          match.players.forEach(p => leaderboard[p].points += 1);
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(rgba(17, 24, 39, 0.85), rgba(17, 24, 39, 0.95)), 
+                        url('https://images.unsplash.com/photo-1626245902045-8798e1363533?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
         }
-      }
 
-      if (mode === 'americano') {
-        if (a > b) {
-          leaderboard[match.players[0]].points += 1;
-          leaderboard[match.players[1]].points += 1;
-        } else if (b > a) {
-          leaderboard[match.players[2]].points += 1;
-          leaderboard[match.players[3]].points += 1;
+        .vibrant-banner {
+            background: linear-gradient(-45deg, #1e40af, #3b82f6, #fbbf24, #2563eb);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
         }
-      }
 
-      match.players.forEach(p => leaderboard[p].matches++);
-    }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
-    // SCORE LISTENER
-    document.addEventListener('input', e => {
-      if (e.target.matches('input[data-match]')) {
-        const id = parseInt(e.target.dataset.match, 10);
-        const team = e.target.dataset.team;
-        const match = matches.find(m => m.id === id);
+        .racky-bounce {
+            animation: bounce 3s infinite ease-in-out;
+        }
 
-        if (!match) return;
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(3deg); }
+        }
 
-        if (team === 'A') match.scoreA = e.target.value;
-        if (team === 'B') match.scoreB = e.target.value;
+        .racky-talk {
+            animation: pulse 0.4s ease-in-out 2;
+        }
 
-        applyScores(match);
-        updateLeaderboard();
-        saveState();
-      }
-    });
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
 
-    // GENERATE BUTTON
-    generateBtn.addEventListener('click', () => {
-      const rawPlayers = playersInput.value
-        .split('\n')
-        .map(p => p.trim())
-        .filter(p => p);
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="text-white p-4">
 
-      if (rawPlayers.length < 4) {
-        alert('Enter at least 4 players');
-        return;
-      }
+    <div class="max-w-6xl mx-auto vibrant-banner p-1 rounded-3xl shadow-2xl mb-8">
+        <div class="bg-gray-900/60 backdrop-blur-md p-6 rounded-[1.4rem] flex flex-wrap items-center gap-6">
+            <div id="rackyContainer" class="racky-bounce relative">
+                <img id="rackyImg" src="YOUR_RACKY_IMAGE_URL" class="w-24 h-24 rounded-full border-4 border-yellow-400 shadow-[0_0_20px_rgba(251,191,36,0.4)] bg-yellow-400 object-cover">
+                <div class="absolute bottom-0 right-0 w-6 h-6 bg-green-500 border-2 border-white rounded-full"></div>
+            </div>
+            
+            <div class="flex-1 min-w-[200px]">
+                <h1 class="text-5xl font-black italic tracking-tighter drop-shadow-lg">
+                    PADEL<span class="text-yellow-400">PILOT</span>
+                </h1>
+                <div class="bg-black/40 px-4 py-2 rounded-xl mt-2 inline-block border border-white/10">
+                    <p id="mascotText" class="text-yellow-300 font-bold italic tracking-wide transition-all duration-300">"Welcome! Ready for the smash?"</p>
+                </div>
+            </div>
 
-      const courts = parseInt(courtsInput.value, 10);
-      if (isNaN(courts) || courts < 1) {
-        alert('Enter valid number of courts');
-        return;
-      }
-
-      players = rawPlayers;
-      currentRound = 1;
-
-      initLeaderboard();
-      generateMatches(courts);
-      renderMatches();
-      updateLeaderboard();
-
-      matchesSection.classList.remove('hidden');
-      leaderboardSection.classList.remove('hidden');
-      nextRoundBtn.classList.remove('hidden');
-      roundDisplay.classList.remove('hidden');
-      roundDisplay.textContent = `Round ${currentRound}`;
-
-      saveState();
-    });
-
-    // NEXT ROUND
-    nextRoundBtn.addEventListener('click', () => {
-      currentRound++;
-      roundDisplay.textContent = `Round ${currentRound}`;
-
-      const courts = parseInt(courtsInput.value, 10);
-      generateMatches(courts);
-      renderMatches();
-
-      saveState();
-    });
-
-    // RESET
-    resetBtn.addEventListener('click', () => {
-      localStorage.removeItem('padelState');
-      location.reload();
-    });
-
-    // SAVE STATE
-    function saveState() {
-      const state = {
-        players,
-        matches,
-        leaderboard,
-        currentRound,
-        mode: modeSelect.value,
-        courts: courtsInput.value,
-        playersText: playersInput.value
-      };
-      localStorage.setItem('padelState', JSON.stringify(state));
-    }
-
-    // LOAD STATE
-    rackySay(rackyBrain.greetings[0]);
-    function loadState() {
-      const saved = localStorage.getItem('padelState');
-      if (!saved) return;
-
-      const state = JSON.parse(saved);
-
-      players = state.players || [];
-      matches = state.matches || [];
-      leaderboard = state.leaderboard || {};
-      currentRound = state.currentRound || 1;
-
-      modeSelect.value = state.mode || 'classic';
-      courtsInput.value = state.courts || '';
-      playersInput.value = state.playersText || '';
-      rackySay(rackyBrain.reactions.playersAdded);
-
-      if (players.length > 0) {
-        renderMatches();
-        rackySay(rackyBrain.reactions.matchesGenerated);
-        updateLeaderboard();
-        matchesSection.classList.remove('hidden');
-        leaderboardSection.classList.remove('hidden');
-        nextRoundBtn.classList.remove('hidden');
-        roundDisplay.classList.remove('hidden');
-        roundDisplay.textContent = `Round ${currentRound}`;
-      }
-    }
-// Mascot toggle
-document.getElementById("mascotButton").addEventListener("click", () => {
-  document.getElementById("mascotPanel").classList.toggle("hidden");
-});
-    loadState();
-    rackySay(rackyBrain.greetings[0]);
-  </script>
-  <script>
-  // RACKY'S BRAIN
-  const rackyBrain = {
-    greetings: [
-      "Hey champ, ready to play?",
-      "Racky here – need a quick rule refresher?",
-      "Let’s get this ball rolling!"
-    ],
-    rules: {
-      americano: "Americano: Each match is 24 points. Switch sides at 12.",
-      classic: "Classic scoring: 3 points for a win, 1 for a draw.",
-      goldenPoint: "Golden point: At 40–40, one point decides the game."
-    },
-    tips: [
-      "Rotate courts every round to keep things fair.",
-      "Try mixing strong and new players for balanced matches.",
-      "Remember to hydrate — padel gets intense fast."
-    ],
-    reactions: {
-      matchesGenerated: "Nice! I’ve prepared your courts. Good luck out there.",
-      scoresUpdated: "Scores updated. Smooth work!",
-      playersAdded: "Players loaded. Ready to generate matches?"
-    }
-  };
-
-  function rackySay(message) {
-    const el = document.getElementById("mascotText");
-    if (el) el.textContent = message;
-  }
-
-  // STATE
-  let players = [];
-  let matches = [];
-  let leaderboard = {};
-  let currentRound = 1;
-
-  // DOM ELEMENTS
-  const playersInput = document.getElementById('playersInput');
-  const courtsInput = document.getElementById('courtsInput');
-  const modeSelect = document.getElementById('modeSelect');
-  const generateBtn = document.getElementById('generateBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const nextRoundBtn = document.getElementById('nextRoundBtn');
-  const matchesSection = document.getElementById('matchesSection');
-  const matchesContainer = document.getElementById('matchesContainer');
-  const restingContainer = document.getElementById('restingContainer');
-  const leaderboardSection = document.getElementById('leaderboardSection');
-  const leaderboardBody = document.getElementById('leaderboardBody');
-  const roundDisplay = document.getElementById('roundDisplay');
-
-  // SHUFFLE
-  function shuffle(arr) {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-
-  // INIT LEADERBOARD
-  function initLeaderboard() {
-    leaderboard = {};
-    players.forEach(p => {
-      leaderboard[p] = { points: 0, matches: 0 };
-    });
-  }
-
-  // GENERATE MATCHES
-  function generateMatches(courts) {
-    matches = [];
-    const shuffled = shuffle(players);
-
-    const groups = [];
-    for (let i = 0; i < shuffled.length; i += 4) {
-      groups.push(shuffled.slice(i, i + 4));
-    }
-
-    const usedGroups = groups.slice(0, courts);
-    const resting = groups.slice(courts).flat();
-
-    usedGroups.forEach((group, idx) => {
-      if (group.length < 4) return;
-      matches.push({
-        id: idx + 1,
-        court: idx + 1,
-        players: group,
-        scoreA: '',
-        scoreB: '',
-        scored: false
-      });
-    });
-
-    renderResting(resting);
-  }
-
-  // RENDER MATCHES
-  function renderMatches() {
-    matchesContainer.innerHTML = '';
-
-    matches.forEach(match => {
-      const div = document.createElement('div');
-      div.className = 'bg-gray-800 p-3 rounded';
-
-      const [p1, p2, p3, p4] = match.players;
-
-      div.innerHTML = `
-        <div class="font-semibold mb-1">Court ${match.court}</div>
-        <div class="text-sm mb-2">
-          <span class="text-green-300">${p1}</span> &amp;
-          <span class="text-green-300">${p2}</span>
-          vs
-          <span class="text-blue-300">${p3}</span> &amp;
-          <span class="text-blue-300">${p4}</span>
+            <div id="timerUI" class="hidden bg-black/40 p-4 rounded-2xl border border-yellow-400/30 text-center">
+                <div id="timeDisplay" class="text-4xl font-mono font-black text-yellow-400">20:00</div>
+                <button id="timerToggleBtn" class="mt-1 text-[10px] font-bold uppercase tracking-widest text-white/60 hover:text-white">Start Timer</button>
+            </div>
         </div>
-        <div class="flex gap-2">
-          <input type="number" min="0" class="w-16 bg-gray-900 p-1 rounded"
-            placeholder="A" data-match="${match.id}" data-team="A">
-          <input type="number" min="0" class="w-16 bg-gray-900 p-1 rounded"
-            placeholder="B" data-match="${match.id}" data-team="B">
+    </div>
+
+    <main class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="space-y-6">
+            <div class="glass p-6 rounded-3xl">
+                <h3 class="text-xs font-black uppercase text-blue-400 tracking-[0.2em] mb-4">Tournament Setup</h3>
+                
+                <textarea id="playersInput" class="w-full bg-black/40 border border-white/10 p-4 rounded-2xl h-48 focus:ring-2 focus:ring-yellow-400 outline-none text-sm transition-all" placeholder="Enter names (one per line)..."></textarea>
+                
+                <div class="grid grid-cols-2 gap-3 mt-4">
+                    <div class="bg-black/20 p-3 rounded-xl border border-white/5">
+                        <label class="block text-[10px] uppercase text-gray-400 font-bold mb-1">Courts</label>
+                        <input id="courtsInput" type="number" value="1" min="1" class="bg-transparent w-full font-bold outline-none">
+                    </div>
+                    <div class="bg-black/20 p-3 rounded-xl border border-white/5">
+                        <label class="block text-[10px] uppercase text-gray-400 font-bold mb-1">Mode</label>
+                        <select id="modeSelect" class="bg-transparent w-full font-bold outline-none cursor-pointer">
+                            <option value="classic" class="bg-gray-900">Classic</option>
+                            <option value="americano" class="bg-gray-900">Americano</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-2 mt-4">
+                    <label class="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer transition-all">
+                        <input type="checkbox" id="enableTimerCheckbox" class="w-5 h-5 accent-yellow-400">
+                        <span class="text-sm font-medium">Show Match Timer</span>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer transition-all">
+                        <input type="checkbox" id="goldenPointToggle" class="w-5 h-5 accent-yellow-400">
+                        <span class="text-sm font-medium">Golden Point Alert</span>
+                    </label>
+                </div>
+
+                <button id="generateBtn" class="w-full mt-6 bg-yellow-400 hover:bg-yellow-300 text-blue-950 font-black py-4 rounded-2xl shadow-[0_10px_20px_rgba(251,191,36,0.3)] transition-all transform active:scale-95 uppercase tracking-widest">
+                    Generate Matches
+                </button>
+                
+                <button id="resetBtn" class="w-full mt-3 text-xs text-gray-500 hover:text-red-400 font-bold transition-all">
+                    Reset Tournament Data
+                </button>
+            </div>
+
+            <div id="sessionCard" class="glass p-6 rounded-3xl border-blue-500/30">
+                <button id="createSession" class="w-full text-blue-400 font-bold text-sm">🌐 Create Online Session</button>
+                <div id="sessionInfo" class="mt-2 text-center"></div>
+            </div>
         </div>
-      `;
 
-      matchesContainer.appendChild(div);
-    });
-  }
+        <div class="lg:col-span-2 space-y-8">
+            
+            <section id="matchesSection" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div class="flex justify-between items-end mb-6">
+                    <div>
+                        <p class="text-[10px] font-black uppercase text-yellow-400 tracking-widest">Current Action</p>
+                        <h2 id="roundDisplay" class="text-3xl font-black italic">ROUND 1</h2>
+                    </div>
+                    <button id="nextRoundBtn" class="bg-green-500 hover:bg-green-400 text-white px-8 py-3 rounded-2xl font-black shadow-lg transition-all transform active:scale-95">
+                        NEXT ROUND →
+                    </button>
+                </div>
+                <div id="matchesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </section>
 
-  // RESTING PLAYERS
-  function renderResting(resting) {
-    restingContainer.textContent =
-      resting.length ? 'Resting: ' + resting.join(', ') : '';
-  }
+            <section id="leaderboardSection" class="hidden glass rounded-3xl overflow-hidden shadow-2xl">
+                <div class="p-6 bg-gradient-to-r from-blue-600/20 to-transparent flex justify-between items-center border-b border-white/10">
+                    <h3 class="text-xl font-black italic tracking-tight">🏆 LEADERBOARD</h3>
+                    <button onclick="downloadLeaderboard()" class="bg-white/10 hover:bg-white/20 p-2 px-4 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                        📸 Export for Socials
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-black/40 text-[10px] font-black uppercase text-gray-400">
+                            <tr>
+                                <th class="p-5">Rank</th>
+                                <th class="p-5">Player</th>
+                                <th class="p-5 text-center">Pts</th>
+                                <th class="p-5 text-center">Games (W/L)</th>
+                                <th class="p-5 text-center">Diff</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardBody" class="divide-y divide-white/5"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
 
-  // UPDATE LEADERBOARD
-  function updateLeaderboard() {
-    leaderboardBody.innerHTML = '';
+    <script>
+        // --- FIREBASE CONFIG ---
+        const firebaseConfig = {
+            apiKey: "AiZaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
+            authDomain: "padelpilot-4531f.firebaseapp.com",
+            databaseURL: "https://padelpilot-4531f-default-rtdb.firebaseio.com",
+            projectId: "padelpilot-4531f",
+            storageBucket: "padelpilot-4531f.appspot.com",
+            messagingSenderId: "866905934997",
+            appId: "1:866905934997:web:97cb8ebc4ed35f9e41f9c",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-    const sorted = Object.entries(leaderboard)
-      .sort((a, b) => b[1].points - a[1].points);
+        // --- STATE ---
+        let players = [];
+        let matches = [];
+        let leaderboard = {};
+        let currentRound = 1;
+        let timerInterval;
 
-    sorted.forEach(([player, data], index) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="px-2 py-1">${index + 1}</td>
-        <td class="px-2 py-1">${player}</td>
-        <td class="px-2 py-1">${data.points}</td>
-        <td class="px-2 py-1">${data.matches}</td>
-      `;
-      leaderboardBody.appendChild(row);
-    });
-  }
+        const rackyBrain = {
+            tips: [
+                "Control the net, control the game! 🎾",
+                "Try to hit the glass, it confuses them! 🔄",
+                "Drink water, the sun is no joke today! 💧",
+                "Great smash! Keep that energy up! 🔥"
+            ],
+            getReaction: (data) => {
+                const sorted = Object.entries(data).sort((a,b) => b[1].points - a[1].points);
+                if (sorted.length === 0) return "Add players and let's get started!";
+                if (sorted[0][1].points > 10) return `${sorted[0][0]} is absolutely crushing it!`;
+                return rackyBrain.tips[Math.floor(Math.random() * rackyBrain.tips.length)];
+            }
+        };
 
-  // APPLY SCORES
-  function applyScores(match) {
-    const a = parseInt(match.scoreA, 10);
-    const b = parseInt(match.scoreB, 10);
+        // --- CORE FUNCTIONS ---
+        function rackySay(msg) {
+            const text = document.getElementById('mascotText');
+            const container = document.getElementById('rackyContainer');
+            container.classList.add('racky-talk');
+            text.style.opacity = 0;
+            setTimeout(() => {
+                text.textContent = `"${msg}"`;
+                text.style.opacity = 1;
+                container.classList.remove('racky-talk');
+            }, 300);
+        }
 
-    if (isNaN(a) || isNaN(b)) return;
-    if (match.scored) return;
+        function shuffle(arr) {
+            let a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
 
-    match.scored = true;
+        function generateMatches() {
+            const courts = parseInt(document.getElementById('courtsInput').value, 10);
+            const shuffled = shuffle(players);
+            const newMatches = [];
+            
+            for (let i = 0; i < courts * 4 && i + 3 < shuffled.length; i += 4) {
+                newMatches.push({
+                    id: Date.now() + i,
+                    court: (i / 4) + 1,
+                    players: [shuffled[i], shuffled[i+1], shuffled[i+2], shuffled[i+3]],
+                    scoreA: '', scoreB: ''
+                });
+            }
+            matches = [...matches, ...newMatches];
+            renderMatches();
+            rackySay(rackyBrain.getReaction(leaderboard));
+        }
 
-    const mode = modeSelect.value;
+        function renderMatches() {
+            const container = document.getElementById('matchesContainer');
+            container.innerHTML = '';
+            // Only show matches for current round for clarity
+            const roundMatches = matches.slice(-parseInt(document.getElementById('courtsInput').value, 10));
+            
+            roundMatches.forEach(m => {
+                const card = document.createElement('div');
+                card.className = 'glass p-5 rounded-2xl border-l-4 border-l-yellow-400';
+                card.innerHTML = `
+                    <div class="flex justify-between text-[10px] font-black text-gray-400 uppercase mb-3">
+                        <span>Court ${m.court}</span>
+                        <span class="text-yellow-400">Live</span>
+                    </div>
+                    <div class="grid grid-cols-5 items-center gap-2">
+                        <div class="col-span-2 text-right">
+                            <div class="font-bold text-sm truncate">${m.players[0]}</div>
+                            <div class="font-bold text-sm truncate">${m.players[1]}</div>
+                        </div>
+                        <div class="flex flex-col gap-1 items-center">
+                            <input type="number" placeholder="0" value="${m.scoreA}" oninput="updateScore(${m.id}, 'A', this.value)" class="w-10 h-10 bg-black/40 border border-white/10 rounded-lg text-center font-bold text-yellow-400 outline-none">
+                            <input type="number" placeholder="0" value="${m.scoreB}" oninput="updateScore(${m.id}, 'B', this.value)" class="w-10 h-10 bg-black/40 border border-white/10 rounded-lg text-center font-bold text-blue-400 outline-none">
+                        </div>
+                        <div class="col-span-2 text-left">
+                            <div class="font-bold text-sm truncate">${m.players[2]}</div>
+                            <div class="font-bold text-sm truncate">${m.players[3]}</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            document.getElementById('matchesSection').classList.remove('hidden');
+        }
 
-    if (mode === 'classic') {
-      if (a > b) {
-        leaderboard[match.players[0]].points += 3;
-        leaderboard[match.players[1]].points += 3;
-      } else if (b > a) {
-        leaderboard[match.players[2]].points += 3;
-        leaderboard[match.players[3]].points += 3;
-      } else {
-        match.players.forEach(p => leaderboard[p].points += 1);
-      }
-    }
+        function updateScore(id, team, val) {
+            const match = matches.find(m => m.id === id);
+            if (match) {
+                if (team === 'A') match.scoreA = val;
+                else match.scoreB = val;
+                recalculateLeaderboard();
+                saveState();
+            }
+        }
 
-    if (mode === 'americano') {
-      if (a > b) {
-        leaderboard[match.players[0]].points += 1;
-        leaderboard[match.players[1]].points += 1;
-      } else if (b > a) {
-        leaderboard[match.players[2]].points += 1;
-        leaderboard[match.players[3]].points += 1;
-      }
-    }
+        function recalculateLeaderboard() {
+            leaderboard = {};
+            players.forEach(p => leaderboard[p] = { points: 0, w: 0, l: 0 });
 
-    match.players.forEach(p => leaderboard[p].matches++);
-    updateLeaderboard();
-    saveState();
-    rackySay(rackyBrain.reactions.scoresUpdated);
-  }
-
-  // SCORE LISTENER
-  document.addEventListener('input', e => {
-    if (e.target.matches('input[data-match]')) {
-      const id = parseInt(e.target.dataset.match, 10);
-      const team = e.target.dataset.team;
-      const match = matches.find(m => m.id === id);
-
-      if (!match) return;
-
-      if (team === 'A') match.scoreA = e.target.value;
-      if (team === 'B') match.scoreB = e.target.value;
-
-      applyScores(match);
-    }
-  });
-
-  // GENERATE BUTTON
-  generateBtn.addEventListener('click', () => {
-    const rawPlayers = playersInput.value
-      .split('\n')
-      .map(p => p.trim())
-      .filter(p => p);
-
-    if (rawPlayers.length < 4) {
-      alert('Enter at least 4 players');
-      return;
-    }
-
-    const courts = parseInt(courtsInput.value, 10);
-    if (isNaN(courts) || courts < 1) {
-      alert('Enter valid number of courts');
-      return;
-    }
-
-    players = rawPlayers;
-    currentRound = 1;
-
-    initLeaderboard();
-    generateMatches(courts);
-    renderMatches();
-    updateLeaderboard();
-
-    matchesSection.classList.remove('hidden');
-    leaderboardSection.classList.remove('hidden');
-    nextRoundBtn.classList.remove('hidden');
-    roundDisplay.classList.remove('hidden');
-    roundDisplay.textContent = `Round ${currentRound}`;
-
-    saveState();
-    rackySay(rackyBrain.reactions.matchesGenerated);
-  });
-
-  // NEXT ROUND
-  nextRoundBtn.addEventListener('click', () => {
-    currentRound++;
-    roundDisplay.textContent = `Round ${currentRound}`;
-
-    const courts = parseInt(courtsInput.value, 10);
-    generateMatches(courts);
-    renderMatches();
-
-    saveState();
-    rackySay(`Round ${currentRound} ready!`);
-  });
-
-  // RESET
-  resetBtn.addEventListener('click', () => {
-    localStorage.removeItem('padelState');
-    location.reload();
-  });
-
-  // SAVE STATE
-  function saveState() {
-    const state = {
-      players,
-      matches,
-      leaderboard,
-      currentRound,
-      mode: modeSelect.value,
-      courts: courtsInput.value,
-      playersText: playersInput.value
-    };
-    localStorage.setItem('padelState', JSON.stringify(state));
-  }
-
-  // LOAD STATE
-  function loadState() {
-    const saved = localStorage.getItem('padelState');
-    if (!saved) {
-      rackySay(rackyBrain.greetings[0]);
-      return;
-    }
-
-    const state = JSON.parse(saved);
-
-    players = state.players || [];
-    matches = state.matches || [];
-    leaderboard = state.leaderboard || {};
-    currentRound = state.currentRound || 1;
-    modeSelect.value = state.mode || 'classic';
-    courtsInput.value = state.courts || '';
-    playersInput.value = state.playersText || '';
-
-    if (players.length > 0) {
-      if (Object.keys(leaderboard).length === 0) {
-        initLeaderboard();
-      }
-      renderMatches();
-      updateLeaderboard();
-      matchesSection.classList.remove('hidden');
-      leaderboardSection.classList.remove('hidden');
-      nextRoundBtn.classList.remove('hidden');
-      roundDisplay.classList.remove('hidden');
-      roundDisplay.textContent = `Round ${currentRound}`;
-      rackySay(rackyBrain.reactions.playersAdded);
-      if (matches.length > 0) {
-        rackySay(rackyBrain.reactions.matchesGenerated);
-      }
-    } else {
-      rackySay(rackyBrain.greetings[0]);
-    }
-  }
-
-  // Mascot toggle
-  document.getElementById("mascotButton").addEventListener("click", () => {
-    document.getElementById("mascotPanel").classList.toggle("hidden");
-  });
-function generateSessionId() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-}document.getElementById("createSession").addEventListener("click", () => {
-  const sessionId = generateSessionId();
-
-  db.ref("sessions/" + sessionId).set({
-    players: {},
-    createdAt: Date.now()
-  });
-
-  document.getElementById("sessionInfo").innerHTML =
-    `Session created: <strong>${sessionId}</strong><br>
-     Share this link:<br>
-     https://YOUR-GITHUB-PAGES-URL/join.html?session=${sessionId}`;
-
-  listenForPlayers(sessionId);
-});
-  function listenForPlayers(sessionId) {
-  db.ref(`sessions/${sessionId}/players`).on("value", snapshot => {
-    const players = snapshot.val() ? Object.values(snapshot.val()) : [];
-
-    document.getElementById("playersInput").value = players.join("\n");
-
-    if (players.length > 0) {
-      const lastPlayer = players[players.length - 1];
-      console.log("New player joined:", lastPlayer);
-    }
-  });
-  loadState();
-        </script>
-  
-}
-  
-
-</body>
-</html>
+            const mode = document.
