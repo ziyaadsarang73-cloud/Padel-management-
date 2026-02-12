@@ -1,102 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Padel Match Generator & Leaderboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(229, 231, 235, 1);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Padel Match Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen pb-20">
 
-    <header class="bg-indigo-600 text-white py-6 shadow-lg mb-8">
-        <div class="container mx-auto px-4 text-center">
-            <h1 class="text-3xl font-bold italic tracking-wider">PADEL PRO GENERATOR</h1>
-            <p class="opacity-80">Round-Robin Tournament Engine</p>
-        </div>
-    </header>
+<body class="bg-gray-900 text-gray-100 p-4">
+  <div class="max-w-lg mx-auto space-y-4">
 
-    <main class="container mx-auto px-4 max-w-5xl">
-        
-        <section id="setup-section" class="grid md:grid-cols-2 gap-6 mb-10">
-            <div class="glass-card p-6 rounded-xl shadow-sm">
-                <h2 class="text-xl font-semibold mb-4 flex items-center">
-                    🎾 Player Entry
-                </h2>
-                <textarea id="player-input" rows="8" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="Enter one player name per line..."></textarea>
-                <div class="mt-4 flex gap-4">
-                    <div class="flex-1">
-                        <label class="block text-sm font-medium text-gray-600">Available Courts</label>
-                        <input type="number" id="court-count" min="1" value="1" class="w-full p-2 border rounded-lg">
-                    </div>
-                    <button id="start-btn" class="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-all mt-auto">
-                        Start Tournament
-                    </button>
-                </div>
-            </div>
+    <h1 class="text-xl font-bold text-center">Padel Match Generator</h1>
 
-            <div class="glass-card p-6 rounded-xl shadow-sm flex flex-col justify-center text-center">
-                <div id="round-indicator" class="hidden">
-                    <h2 class="text-gray-500 uppercase tracking-widest text-sm font-bold">Current Round</h2>
-                    <div id="round-number" class="text-6xl font-black text-indigo-600 my-2">1</div>
-                    <div class="flex justify-center gap-2 mt-4">
-                        <button id="next-round-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-full font-bold shadow-md transition">
-                            Next Round →
-                        </button>
-                        <button id="reset-btn" class="bg-red-100 hover:bg-red-200 text-red-600 px-6 py-2 rounded-full font-bold transition">
-                            Reset All
-                        </button>
-                    </div>
-                </div>
-                <div id="setup-welcome">
-                    <p class="text-gray-400 italic">Enter players and click start to begin tracking matches.</p>
-                </div>
-            </div>
-        </section>
+    <!-- Player Input -->
+    <textarea id="playersInput"
+      class="w-full h-40 p-2 rounded bg-gray-800 text-gray-200"
+      placeholder="Enter one player per line"></textarea>
 
-        <div class="grid lg:grid-cols-3 gap-8">
-            
-            <div class="lg:col-span-2 space-y-6">
-                <h2 class="text-2xl font-bold flex items-center gap-2">
-                    Current Matches <span id="match-count-badge" class="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded">0</span>
-                </h2>
-                <div id="matches-container" class="grid md:grid-cols-1 gap-4">
-                    </div>
-                
-                <div id="resting-players-container" class="p-4 bg-orange-50 border-l-4 border-orange-400 rounded-r-lg hidden">
-                    <h3 class="text-orange-800 font-bold text-sm uppercase">Resting this round:</h3>
-                    <p id="resting-list" class="text-orange-700"></p>
-                </div>
-            </div>
+    <!-- Courts -->
+    <input id="courtsInput" type="number" min="1"
+      class="w-full p-2 rounded bg-gray-800 text-gray-200"
+      placeholder="Number of courts" />
 
-            <div class="lg:col-span-1">
-                <div class="sticky top-6">
-                    <h2 class="text-2xl font-bold mb-4">Leaderboard</h2>
-                    <div class="glass-card rounded-xl overflow-hidden shadow-md">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-100 text-gray-600 text-xs uppercase">
-                                <tr>
-                                    <th class="px-4 py-3">Rank</th>
-                                    <th class="px-4 py-3">Player</th>
-                                    <th class="px-4 py-3 text-center">Pld</th>
-                                    <th class="px-4 py-3 text-right">Pts</th>
-                                </tr>
-                            </thead>
-                            <tbody id="leaderboard-body" class="divide-y divide-gray-100">
-                                </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
+    <!-- Mode -->
+    <select id="modeSelect"
+      class="w-full p-2 rounded bg-gray-800 text-gray-200">
+      <option value="classic">Classic</option>
+      <option value="americano">Americano</option>
+    </select>
 
-    <script src="app.js"></script>
+    <!-- Buttons -->
+    <div class="flex gap-2">
+      <button id="generateBtn"
+        class="flex-1 bg-green-400 text-gray-900 font-semibold py-2 rounded">
+        Generate Matches
+      </button>
+
+      <button id="resetBtn"
+        class="flex-1 border border-red-500 text-red-500 font-semibold py-2 rounded">
+        Reset
+      </button>
+    </div>
+
+    <button id="nextRoundBtn"
+      class="w-full bg-gray-700 text-gray-200 font-semibold py-2 rounded hidden">
+      Next Round
+    </button>
+
+    <!-- Round Display -->
+    <div id="roundDisplay"
+      class="text-center text-sm text-gray-400 hidden">
+      Round 1
+    </div>
+
+    <!-- Matches -->
+    <section id="matchesSection" class="hidden">
+      <h2 class="text-lg font-semibold mb-2">Matches</h2>
+      <div id="matchesContainer" class="space-y-3"></div>
+      <div id="restingContainer" class="mt-3 text-sm text-gray-400"></div>
+    </section>
+
+    <!-- Leaderboard -->
+    <section id="leaderboardSection" class="hidden">
+      <h2 class="text-lg font-semibold mb-2">Leaderboard</h2>
+      <table class="w-full text-sm">
+        <thead class="bg-gray-800">
+          <tr>
+            <th class="px-2 py-1 text-left">#</th>
+            <th class="px-2 py-1 text-left">Player</th>
+            <th class="px-2 py-1 text-right">Points</th>
+            <th class="px-2 py-1 text-right">Matches</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardBody"></tbody>
+      </table>
+    </section>
+
+  </div>
+
+  <script>
+    // We will fill this in step-by-step
+  </script>
 </body>
 </html>
