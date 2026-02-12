@@ -718,10 +718,7 @@ document.getElementById("mascotButton").addEventListener("click", () => {
   document.getElementById("mascotButton").addEventListener("click", () => {
     document.getElementById("mascotPanel").classList.toggle("hidden");
   });
-
-  loadState();
-        </script>
-  function generateSessionId() {
+function generateSessionId() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }document.getElementById("createSession").addEventListener("click", () => {
   const sessionId = generateSessionId();
@@ -749,6 +746,9 @@ document.getElementById("mascotButton").addEventListener("click", () => {
       console.log("New player joined:", lastPlayer);
     }
   });
+  loadState();
+        </script>
+  
 }
   
 
