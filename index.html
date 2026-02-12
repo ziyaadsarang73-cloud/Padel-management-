@@ -170,10 +170,115 @@
             // Only show the most recent matches for the current round
             const count = parseInt(document.getElementById('courtsInput').value) || 1;
             const currentRoundMatches = matches.slice(-count);
+        // --- FIREBASE SETUP ---
+        const firebaseConfig = {
+            apiKey: "AiZaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
+            authDomain: "padelpilot-4531f.firebaseapp.com",
+            databaseURL: "https://padelpilot-4531f-default-rtdb.firebaseio.com",
+            projectId: "padelpilot-4531f",
+            storageBucket: "padelpilot-4531f.appspot.com",
+            messagingSenderId: "866905934997",
+            appId: "1:866905934997:web:97cb8ebc4ed35f9e41f9c",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let players = []; let matches = []; let currentRound = 1;
+        let currentSessionId = new URLSearchParams(window.location.search).get('join');
+
+        function rackySay(msg) { document.getElementById('mascotText').textContent = `"${msg}"`; }
+
+        // --- NEW: AUTO-LOAD SESSION IF JOINING ---
+        if (currentSessionId) {
+            db.ref('sessions/' + currentSessionId).on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.players) {
+                    document.getElementById('playersInput').value = data.players;
+                    players = data.players.split('\n').filter(p => p.trim());
+                    rackySay("Syncing squad names from the cloud... ☁️");
+                }
+            });
+            document.getElementById('sessionInfo').innerHTML = `<p class="text-green-400 font-bold">Connected to: ${currentSessionId}</p>`;
+        }
+
+        // --- FIXED SHARE LINK LOGIC ---
+        document.getElementById('createSession').onclick = function() {
+            const sessionId = Math.random().toString(36).substring(2, 8).toUpperCase();
+            const playerList = document.getElementById('playersInput').value;
+            
+            // Save initial data
+            db.ref('sessions/' + sessionId).set({
+                players: playerList,
+                active: true,
+                time: Date.now()
+            });
+            
+            const currentUrl = window.location.href.split('?')[0];
+            const joinUrl = currentUrl + "?join=" + sessionId;
+            
+            document.getElementById('sessionInfo').innerHTML = `
+                <div class="p-2 bg-blue-500/20 border border-blue-400 rounded-lg mt-2">
+                    <p class="font-bold text-blue-400">ID: ${sessionId}</p>
+                    <button onclick="navigator.clipboard.writeText('${joinUrl}'); alert('Link Copied!');" class="mt-1 bg-blue-500 text-white px-3 py-1 rounded text-[10px] font-bold w-full uppercase">Copy Join Link</button>
+                </div>
+            `;
+            currentSessionId = sessionId;
+            rackySay("Session saved! Anyone with this link will see your player list.");
+        };
+
+        // --- SYNC PLAYERS AS YOU TYPE ---
+        document.getElementById('playersInput').oninput = function() {
+            if (currentSessionId) {
+                db.ref('sessions/' + currentSessionId).update({
+                    players: this.value
+                });
+            }
+        };
+
+        // --- GENERATION LOGIC ---
+        document.getElementById('generateBtn').onclick = () => {
+            const raw = document.getElementById('playersInput').value.split('\n').filter(p => p.trim());
+            if (raw.length < 4) return alert("Add at least 4 players!");
+            players = raw; matches = []; currentRound = 1;
+            startRound();
+        };
+
+        document.getElementById('nextBtn').onclick = () => { currentRound++; startRound(); };
+
+        function startRound() {
+            const courts = parseInt(document.getElementById('courtsInput').value) || 1;
+            const shuffled = [...players].sort(() => 0.5 - Math.random());
+            const newMatches = [];
+            
+            for (let i = 0; i < courts * 4 && i + 3 < shuffled.length; i += 4) {
+                newMatches.push({
+                    id: Date.now() + i,
+                    court: (i/4) + 1,
+                    p: [shuffled[i], shuffled[i+1], shuffled[i+2], shuffled[i+3]],
+                    sA: '', sB: ''
+                });
+            }
+
+            const totalInGame = newMatches.length * 4;
+            const resting = shuffled.slice(totalInGame);
+            document.getElementById('restingContainer').textContent = resting.length ? `Resting: ${resting.join(', ')}` : 'Everyone is playing!';
+            document.getElementById('roundDisplay').textContent = `Round ${currentRound}`;
+
+            matches = [...matches, ...newMatches];
+            render();
+            updateBoard();
+            rackySay("Matches generated for " + courts + " courts!");
+        }
+
+        function render() {
+            const container = document.getElementById('matchesContainer');
+            container.innerHTML = '';
+            const count = parseInt(document.getElementById('courtsInput').value) || 1;
+            const currentRoundMatches = matches.slice(-count);
 
             currentRoundMatches.forEach(m => {
                 const div = document.createElement('div');
-                div.className = 'bg-black/60 p-4 rounded-2xl flex justify-between items-center border border-white/10';
+                div.className = 'bg-black/60 p-4 rounded-2xl flex justify-between items-center border border-white/10 mb-2';
                 div.innerHTML = `
                     <div class="text-[10px] font-bold w-1/3 text-yellow-400 uppercase leading-tight">Court ${m.court}<br>${m.p[0]} & ${m.p[1]}</div>
                     <div class="flex gap-2">
@@ -230,6 +335,7 @@
                 const link = document.createElement('a'); link.download = 'standings.png'; link.href = canvas.toDataURL(); link.click();
             });
         }
+
     </script>
 </body>
 </html>
