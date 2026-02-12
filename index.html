@@ -12,17 +12,19 @@
 
     <style>
         body {
-            background-color: #111827;
+            background-color: #0f172a;
             color: white;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
         }
-        /* RESTORED: Padel Court Background */
-        .court-bg {
-            background: linear-gradient(rgba(17, 24, 39, 0.8), rgba(17, 24, 39, 0.8)), 
-                        url('59431.jpg'); /* Using your court file */
+        /* Background Layer */
+        .master-bg {
+            background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.95)), 
+                        url('59431.jpg'); /* Your court background file */
             background-size: cover;
             background-position: center;
-            border-radius: 2rem;
+            background-attachment: fixed;
+            min-height: 100vh;
         }
         .vibrant-banner {
             background: linear-gradient(-45deg, #1e40af, #3b82f6, #fbbf24, #2563eb);
@@ -41,70 +43,98 @@
         }
     </style>
 </head>
-<body class="p-4">
+<body>
+    <div class="master-bg p-4">
 
-    <div class="max-w-4xl mx-auto vibrant-banner p-1 rounded-3xl shadow-2xl mb-8">
+    <div class="max-w-5xl mx-auto vibrant-banner p-1 rounded-3xl shadow-2xl mb-8">
         <div class="bg-gray-900/60 backdrop-blur-md p-6 rounded-[1.4rem] flex items-center gap-6">
             <div class="racky-bounce">
-                <img src="59464.jpg" alt="Racky" class="w-24 h-24 rounded-full border-4 border-yellow-400 shadow-xl bg-white object-cover">
+                <img src="59464.jpg" alt="Racky" class="w-20 h-20 rounded-full border-4 border-yellow-400 bg-white object-cover">
             </div>
             <div class="flex-1">
-                <h1 class="text-4xl font-black italic tracking-tighter">PADEL<span class="text-yellow-400">PILOT</span></h1>
-                <div class="bg-black/30 px-3 py-1 rounded-lg mt-2 inline-block">
-                    <p id="mascotText" class="text-yellow-200 font-bold italic">"Hey champ! Ready to dominate the court?"</p>
+                <h1 class="text-3xl font-black italic tracking-tighter uppercase">Padel<span class="text-yellow-400">Pilot</span></h1>
+                <div class="bg-black/30 px-3 py-1 rounded-lg mt-1 inline-block">
+                    <p id="mascotText" class="text-yellow-200 text-sm font-bold italic">"Ready to dominate the court?"</p>
                 </div>
             </div>
             <div id="timerContainer" class="hidden text-right">
                 <div id="timeDisplay" class="text-3xl font-mono font-bold text-yellow-400">20:00</div>
-                <button id="timerBtn" class="text-[10px] bg-white/10 px-2 py-1 rounded uppercase">Start</button>
+                <button id="timerBtn" class="text-[10px] bg-white/10 px-2 py-1 rounded">START</button>
             </div>
         </div>
     </div>
 
-    <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-gray-900/80 p-6 rounded-3xl border border-gray-700">
-            <h2 class="text-xs font-bold uppercase text-blue-400 mb-4 tracking-widest">Tournament Setup</h2>
-            <textarea id="playersInput" class="w-full bg-black/50 border border-gray-700 p-3 rounded-xl h-40 outline-none focus:border-yellow-400" placeholder="Enter players (one per line)..."></textarea>
-            
-            <div class="mt-4 space-y-3">
-                <div class="flex items-center justify-between text-sm">
-                    <span>Match Timer</span>
-                    <input type="checkbox" id="timerToggle" class="w-5 h-5 accent-yellow-400">
-                </div>
-                <select id="modeSelect" class="w-full bg-black/50 p-2 rounded-lg border border-gray-700 text-sm">
-                    <option value="classic">Classic (3pts Win)</option>
-                    <option value="americano">Americano (Total Games)</option>
-                </select>
-                <button id="generateBtn" class="w-full bg-yellow-400 text-blue-900 font-black py-3 rounded-xl uppercase hover:scale-105 transition">Generate Round</button>
+    <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <div class="space-y-6">
+            <div class="bg-gray-900/80 p-6 rounded-3xl border border-gray-700 shadow-xl">
+                <h3 class="text-xs font-bold uppercase text-blue-400 mb-4 tracking-widest">Tournament Setup</h3>
                 
-                <button id="createSession" class="w-full bg-blue-600/20 border border-blue-500 text-blue-400 text-xs font-bold py-2 rounded-xl mt-4">🌐 Create Live Join Link</button>
-                <div id="sessionInfo" class="text-center text-xs mt-2 text-green-400 font-mono"></div>
+                <label class="block text-[10px] uppercase text-gray-400 font-bold mb-1">Players (One per line)</label>
+                <textarea id="playersInput" class="w-full bg-black/50 border border-gray-700 p-3 rounded-xl h-40 outline-none focus:border-yellow-400 transition-all" placeholder="Alex&#10;Sam&#10;Jordan..."></textarea>
+                
+                <div class="grid grid-cols-2 gap-3 mt-4">
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-400 font-bold mb-1">Courts</label>
+                        <input id="courtsInput" type="number" value="1" min="1" class="w-full bg-black/50 p-2 rounded-lg border border-gray-700">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase text-gray-400 font-bold mb-1">Mode</label>
+                        <select id="modeSelect" class="w-full bg-black/50 p-2 rounded-lg border border-gray-700 text-xs">
+                            <option value="classic">Classic</option>
+                            <option value="americano">Americano</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-4 space-y-2">
+                    <label class="flex items-center gap-2 text-xs">
+                        <input type="checkbox" id="timerToggle" class="accent-yellow-400"> Match Timer
+                    </label>
+                </div>
+
+                <button id="generateBtn" class="w-full mt-6 bg-yellow-400 text-blue-900 font-black py-3 rounded-xl uppercase shadow-lg hover:scale-105 transition">Generate Round</button>
+                
+                <hr class="my-6 border-gray-800">
+                
+                <button id="createSession" class="w-full text-blue-400 text-xs font-bold hover:underline">🌐 Create Live Join Link</button>
+                <div id="sessionInfo" class="mt-2 text-center text-xs break-all"></div>
             </div>
         </div>
 
-        <div class="md:col-span-2 space-y-6 court-bg p-6 min-h-[400px]">
+        <div class="lg:col-span-2 space-y-8">
             <div id="matchesSection" class="hidden">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 id="roundDisplay" class="text-xl font-bold italic bg-black/40 px-3 rounded">ROUND 1</h3>
-                    <button id="nextBtn" class="bg-green-500 px-4 py-1 rounded-full text-sm font-bold shadow-lg">NEXT ROUND</button>
+                    <h2 id="roundDisplay" class="text-2xl font-black italic uppercase">Round 1</h2>
+                    <button id="nextBtn" class="bg-green-500 px-6 py-2 rounded-full font-bold shadow-lg text-sm">Next Round →</button>
                 </div>
                 <div id="matchesContainer" class="grid grid-cols-1 gap-4"></div>
-                <p id="restingContainer" class="mt-4 text-center text-yellow-300 font-bold italic bg-black/40 rounded"></p>
+                <div id="restingContainer" class="mt-4 p-3 bg-yellow-400/10 border border-yellow-400/20 rounded-xl text-yellow-300 text-sm italic text-center font-bold"></div>
             </div>
 
             <div id="leaderboardSection" class="hidden bg-gray-900/90 rounded-3xl overflow-hidden border border-gray-700 shadow-2xl">
                 <div class="p-4 bg-gray-800 flex justify-between items-center">
-                    <span class="font-bold">🏆 LIVE STANDINGS</span>
-                    <button onclick="downloadResults()" class="text-xs bg-white/10 px-3 py-1 rounded-full">📸 Save to Gallery</button>
+                    <span class="font-bold">🏆 Standings</span>
+                    <button onclick="downloadResults()" class="text-[10px] bg-white/10 px-3 py-1 rounded-full uppercase font-bold">📸 Export Results</button>
                 </div>
-                <table class="w-full text-sm text-left">
+                <table class="w-full text-left">
+                    <thead class="bg-black/40 text-[10px] uppercase text-gray-400">
+                        <tr>
+                            <th class="p-4">Rank</th>
+                            <th class="p-4">Player</th>
+                            <th class="p-4">Pts</th>
+                            <th class="p-4">Diff</th>
+                        </tr>
+                    </thead>
                     <tbody id="leaderboardBody"></tbody>
                 </table>
             </div>
         </div>
     </div>
+    </div>
 
     <script>
+        // FIREBASE SETUP
         const firebaseConfig = {
             apiKey: "AiZaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
             authDomain: "padelpilot-4531f.firebaseapp.com",
@@ -117,38 +147,44 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Racky Brain
-        const rackyBrain = {
-            greetings: ["Hey champ, ready to play?", "Racky here - need a quick rule refresher?", "Let's get this ball rolling!"],
-            tips: ["Rotate courts every round!", "Hydrate! Padel gets intense fast.", "Try mixing strong and new players."]
-        };
-
         let players = []; let matches = []; let currentRound = 1; let leaderboard = {};
+        const tips = ["Aim for the glass! 🔄", "Control the net, control the game. 🎾", "Stay hydrated! 💧"];
 
+        // RACKY LOGIC
         function rackySay(msg) { document.getElementById('mascotText').textContent = `"${msg}"`; }
 
-        // Join Link Logic
-        document.getElementById('createSession').onclick = () => {
+        // JOIN LINK LOGIC
+        document.getElementById('createSession').onclick = function() {
             const sessionId = Math.random().toString(36).substring(2, 8).toUpperCase();
-            db.ref('sessions/' + sessionId).set({ created: Date.now(), active: true });
-            const joinUrl = window.location.href.split('?')[0] + '?join=' + sessionId;
-            document.getElementById('sessionInfo').innerHTML = `ID: ${sessionId}<br><a href="${joinUrl}" class="underline">Share Link</a>`;
-            rackySay("Join link is live! Send it to the squad.");
+            db.ref('sessions/' + sessionId).set({ active: true, timestamp: Date.now() });
+            const url = window.location.origin + window.location.pathname + "?join=" + sessionId;
+            document.getElementById('sessionInfo').innerHTML = `
+                <p class="text-green-400 font-bold">Session ID: ${sessionId}</p>
+                <a href="${url}" class="text-blue-400 underline">Share Join Link</a>
+            `;
+            rackySay("Your session is live! Invite the team.");
         };
 
+        // MATCH GENERATION
         document.getElementById('generateBtn').onclick = () => {
             const raw = document.getElementById('playersInput').value.split('\n').filter(p => p.trim());
-            if (raw.length < 4) return alert("Need 4 players!");
-            players = raw;
-            matches = []; currentRound = 1;
+            if (raw.length < 4) return alert("Need at least 4 players!");
+            players = raw; matches = []; currentRound = 1;
+            startRound();
+        };
+
+        document.getElementById('nextBtn').onclick = () => {
+            currentRound++;
+            document.getElementById('roundDisplay').textContent = `Round ${currentRound}`;
             startRound();
         };
 
         function startRound() {
+            const courtCount = parseInt(document.getElementById('courtsInput').value) || 1;
             const shuffled = [...players].sort(() => 0.5 - Math.random());
             const newMatches = [];
-            // Court logic
-            for (let i = 0; i + 3 < shuffled.length; i += 4) {
+            
+            for (let i = 0; i < courtCount * 4 && i + 3 < shuffled.length; i += 4) {
                 newMatches.push({
                     id: Date.now() + i,
                     court: (i/4) + 1,
@@ -156,34 +192,34 @@
                     sA: '', sB: ''
                 });
             }
-            const resting = shuffled.slice(newMatches.length * 4);
-            document.getElementById('restingContainer').textContent = resting.length ? `Resting: ${resting.join(', ')}` : '';
-            
+
+            const totalInGame = newMatches.length * 4;
+            const resting = shuffled.slice(totalInGame);
+            document.getElementById('restingContainer').textContent = resting.length ? `Resting Players: ${resting.join(', ')}` : 'Everyone is playing!';
+
             matches = [...matches, ...newMatches];
-            render();
-            rackySay(rackyBrain.tips[Math.floor(Math.random() * rackyBrain.tips.length)]);
+            renderMatches(newMatches);
+            updateBoard();
+            rackySay(tips[Math.floor(Math.random()*tips.length)]);
         }
 
-        function render() {
+        function renderMatches(currentMatches) {
             const container = document.getElementById('matchesContainer');
             container.innerHTML = '';
-            const roundMatches = matches.filter(m => matches.indexOf(m) >= matches.length - (Math.floor(players.length/4)));
-            
-            roundMatches.forEach(m => {
+            currentMatches.forEach(m => {
                 const div = document.createElement('div');
-                div.className = 'bg-black/60 backdrop-blur-sm p-4 rounded-2xl flex justify-between items-center border border-white/10';
+                div.className = 'bg-black/60 p-4 rounded-2xl flex justify-between items-center border border-white/10 shadow-lg';
                 div.innerHTML = `
-                    <div class="text-xs font-bold w-1/3 text-yellow-400">${m.p[0]} & ${m.p[1]}</div>
+                    <div class="text-[11px] font-bold w-1/3 text-yellow-400 uppercase">Court ${m.court}<br>${m.p[0]} & ${m.p[1]}</div>
                     <div class="flex gap-2">
-                        <input type="number" placeholder="0" oninput="upd(${m.id},'A',this.value)" class="w-12 bg-gray-900 rounded p-1 text-center font-bold">
-                        <input type="number" placeholder="0" oninput="upd(${m.id},'B',this.value)" class="w-12 bg-gray-900 rounded p-1 text-center font-bold">
+                        <input type="number" oninput="upd(${m.id},'A',this.value)" class="w-10 bg-gray-900 rounded p-1 text-center font-bold outline-none border border-white/5 focus:border-yellow-400">
+                        <input type="number" oninput="upd(${m.id},'B',this.value)" class="w-10 bg-gray-900 rounded p-1 text-center font-bold outline-none border border-white/5 focus:border-blue-400">
                     </div>
-                    <div class="text-xs font-bold w-1/3 text-right text-blue-400">${m.p[2]} & ${m.p[3]}</div>
+                    <div class="text-[11px] font-bold w-1/3 text-right text-blue-400 uppercase">Opponents<br>${m.p[2]} & ${m.p[3]}</div>
                 `;
                 container.appendChild(div);
             });
             document.getElementById('matchesSection').classList.remove('hidden');
-            updateBoard();
         }
 
         function upd(id, team, val) {
@@ -200,10 +236,8 @@
             matches.forEach(m => {
                 const a = parseInt(m.sA) || 0; const b = parseInt(m.sB) || 0;
                 if (m.sA === '' || m.sB === '') return;
-
                 m.p.slice(0,2).forEach(p => leaderboard[p].diff += (a - b));
                 m.p.slice(2,4).forEach(p => leaderboard[p].diff += (b - a));
-
                 if (mode === 'classic') {
                     if (a > b) m.p.slice(0,2).forEach(p => leaderboard[p].pts += 3);
                     else if (b > a) m.p.slice(2,4).forEach(p => leaderboard[p].pts += 3);
@@ -216,362 +250,23 @@
 
             const sorted = Object.entries(leaderboard).sort((a,b) => b[1].pts - a[1].pts || b[1].diff - a[1].diff);
             document.getElementById('leaderboardBody').innerHTML = sorted.map(([n, d], i) => `
-                <tr class="border-b border-white/5">
-                    <td class="p-3 text-gray-500">#${i+1}</td>
-                    <td class="p-3 font-bold">${n}</td>
-                    <td class="p-3 text-yellow-400 font-black">${d.pts}</td>
-                    <td class="p-3 text-xs ${d.diff >= 0 ? 'text-green-400' : 'text-red-400'}">${d.diff > 0 ? '+' : ''}${d.diff}</td>
+                <tr class="border-b border-white/5 hover:bg-white/5 transition">
+                    <td class="p-4 text-gray-500 font-bold">#${i+1}</td>
+                    <td class="p-4 font-bold text-sm">${n}</td>
+                    <td class="p-4 text-yellow-400 font-black">${d.pts}</td>
+                    <td class="p-4 text-xs font-bold ${d.diff >= 0 ? 'text-green-400' : 'text-red-400'}">${d.diff > 0 ? '+' : ''}${d.diff}</td>
                 </tr>
             `).join('');
             document.getElementById('leaderboardSection').classList.remove('hidden');
         }
 
         function downloadResults() {
-            html2canvas(document.getElementById('leaderboardSection'), { backgroundColor: '#111827' }).then(c => {
-                const a = document.createElement('a'); a.download = 'standings.png'; a.href = c.toDataURL(); a.click();
+            html2canvas(document.getElementById('leaderboardSection'), { backgroundColor: '#111827', scale: 2 }).then(canvas => {
+                const link = document.createElement('a'); link.download = 'standings.png'; link.href = canvas.toDataURL(); link.click();
             });
         }
-        // --- FIREBASE CONFIG ---
-const firebaseConfig = {
-    apiKey: "AiZaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
-    authDomain: "padelpilot-4531f.firebaseapp.com",
-    databaseURL: "https://padelpilot-4531f-default-rtdb.firebaseio.com",
-    projectId: "padelpilot-4531f",
-    storageBucket: "padelpilot-4531f.appspot.com",
-    messagingSenderId: "866905934997",
-    appId: "1:866905934997:web:97cb8ebc4ed35f9e41f9c",
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
 
-// --- APP STATE ---
-let players = []; 
-let matches = []; 
-let currentRound = 1; 
-let leaderboard = {};
-
-// --- 1. RACKY'S FUNCTION (Support & Info) ---
-const rackyBrain = {
-    tips: [
-        "Rotate courts every round to keep it fresh! 🔄",
-        "The lob is your best friend in Padel. 🎾",
-        "Communication is key—talk to your partner! 🗣️",
-        "Hydrate! It's getting intense out there. 💧"
-    ],
-    say: function(msg) {
-        const mascotText = document.getElementById('mascotText');
-        if(mascotText) mascotText.textContent = `"${msg}"`;
-    }
-};
-
-// --- 2. SHARE LINK LOGIC ---
-document.getElementById('createSession').onclick = function() {
-    const sessionId = Math.random().toString(36).substring(2, 8).toUpperCase();
-    
-    // Push session to Firebase
-    db.ref('sessions/' + sessionId).set({
-        createdAt: Date.now(),
-        status: 'active'
-    });
-
-    // Generate the actual URL
-    const joinUrl = window.location.origin + window.location.pathname + "?join=" + sessionId;
-    
-    // Update the UI
-    const infoBox = document.getElementById('sessionInfo');
-    infoBox.innerHTML = `
-        <div class="p-2 bg-blue-500/20 rounded mt-2 border border-blue-400">
-            <p class="font-bold uppercase text-[10px]">Invite Link Created!</p>
-            <input type="text" value="${joinUrl}" id="copyUrl" class="w-full bg-black/50 p-1 text-[10px] rounded my-1 outline-none">
-            <button onclick="copyLink()" class="bg-blue-500 px-2 py-1 rounded text-[10px] font-bold">COPY LINK</button>
-        </div>
-    `;
-    rackyBrain.say("Invite link is live! Send it to the squad. 📱");
-};
-
-function copyLink() {
-    const copyText = document.getElementById("copyUrl");
-    copyText.select();
-    navigator.clipboard.writeText(copyText.value);
-    alert("Link copied to clipboard!");
-}
-
-// --- 3. COURT NUMBER LOGIC ---
-document.getElementById('generateBtn').onclick = function() {
-    const raw = document.getElementById('playersInput').value.split('\n').filter(p => p.trim());
-    const courtCount = parseInt(document.getElementById('courtsInput')?.value) || 1; // Pulls from your number input
-    
-    if (raw.length < 4) {
-        alert("Need at least 4 players!");
-        return;
-    }
-
-    players = raw;
-    matches = [];
-    currentRound = 1;
-    
-    generateMatches(courtCount);
-};
-
-function generateMatches(numCourts) {
-    const shuffled = [...players].sort(() => 0.5 - Math.random());
-    const newMatches = [];
-    
-    // Use the number of courts selected by the user
-    for (let i = 0; i < numCourts * 4 && i + 3 < shuffled.length; i += 4) {
-        newMatches.push({
-            id: Date.now() + i,
-            court: (i / 4) + 1,
-            p: [shuffled[i], shuffled[i+1], shuffled[i+2], shuffled[i+3]],
-            sA: '', sB: ''
-        });
-    }
-
-    // Handle Resting Players
-    const totalPlaying = newMatches.length * 4;
-    const resting = shuffled.slice(totalPlaying);
-    const restingBox = document.getElementById('restingContainer');
-    if(restingBox) restingBox.textContent = resting.length ? `Resting this round: ${resting.join(', ')}` : '';
-
-    matches = [...matches, ...newMatches];
-    renderMatches();
-    rackyBrain.say(rackyBrain.tips[Math.floor(Math.random() * rackyBrain.tips.length)]);
-}
-
-// Reuse your existing render() and updateBoard() functions from here...
-function renderMatches() {
-    const container = document.getElementById('matchesContainer');
-    container.innerHTML = '';
-    // Show only matches from the current round
-    const currentMatches = matches.filter(m => matches.indexOf(m) >= matches.length - (Math.floor(players.length/4)));
-    
-    currentMatches.forEach(m => {
-        const div = document.createElement('div');
-        div.className = 'bg-black/60 backdrop-blur-sm p-4 rounded-2xl flex justify-between items-center border border-white/10 mb-2';
-        div.innerHTML = `
-            <div class="text-[11px] font-bold w-1/3 text-yellow-400 uppercase">Court ${m.court}: ${m.p[0]} & ${m.p[1]}</div>
-            <div class="flex gap-2">
-                <input type="number" placeholder="0" oninput="upd(${m.id},'A',this.value)" class="w-10 bg-gray-900 rounded p-1 text-center font-bold text-white">
-                <input type="number" placeholder="0" oninput="upd(${m.id},'B',this.value)" class="w-10 bg-gray-900 rounded p-1 text-center font-bold text-white">
-            </div>
-            <div class="text-[11px] font-bold w-1/3 text-right text-blue-400 uppercase">${m.p[2]} & ${m.p[3]}</div>
-        `;
-        container.appendChild(div);
-    });
-    document.getElementById('matchesSection').classList.remove('hidden');
-}
-
-function upd(id, team, val) {
-    const m = matches.find(x => x.id === id);
-    if (team === 'A') m.sA = val; else m.sB = val;
-    updateBoard();
-}
-
-function updateBoard() {
-    leaderboard = {};
-    players.forEach(p => leaderboard[p] = { pts: 0, diff: 0 });
-    const mode = document.getElementById('modeSelect').value;
-
-    matches.forEach(m => {
-        const a = parseInt(m.sA) || 0; const b = parseInt(m.sB) || 0;
-        if (m.sA === '' || m.sB === '') return;
-
-        m.p.slice(0,2).forEach(p => leaderboard[p].diff += (a - b));
-        m.p.slice(2,4).forEach(p => leaderboard[p].diff += (b - a));
-
-        if (mode === 'classic') {
-            if (a > b) m.p.slice(0,2).forEach(p => leaderboard[p].pts += 3);
-            else if (b > a) m.p.slice(2,4).forEach(p => leaderboard[p].pts += 3);
-            else m.p.forEach(p => leaderboard[p].pts += 1);
-        } else {
-            m.p.slice(0,2).forEach(p => leaderboard[p].pts += a);
-            m.p.slice(2,4).forEach(p => leaderboard[p].pts += b);
-        }
-    });
-
-    const sorted = Object.entries(leaderboard).sort((a,b) => b[1].pts - a[1].pts || b[1].diff - a[1].diff);
-    document.getElementById('leaderboardBody').innerHTML = sorted.map(([n, d], i) => `
-        <tr class="border-b border-white/5">
-            <td class="p-3 text-gray-500">#${i+1}</td>
-            <td class="p-3 font-bold">${n}</td>
-            <td class="p-3 text-yellow-400 font-black">${d.pts}</td>
-            <td class="p-3 text-xs ${d.diff >= 0 ? 'text-green-400' : 'text-red-400'}">${d.diff > 0 ? '+' : ''}${d.diff}</td>
-        </tr>
-    `).join('');
-    document.getElementById('leaderboardSection').classList.remove('hidden');
-}
-
+        document.getElementById('timerToggle').onchange = (e) => document.getElementById('timerContainer').classList.toggle('hidden', !e.target.checked);
     </script>
-    // --- FIREBASE CONFIG ---
-const firebaseConfig = {
-    apiKey: "AiZaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
-    authDomain: "padelpilot-4531f.firebaseapp.com",
-    databaseURL: "https://padelpilot-4531f-default-rtdb.firebaseio.com",
-    projectId: "padelpilot-4531f",
-    storageBucket: "padelpilot-4531f.appspot.com",
-    messagingSenderId: "866905934997",
-    appId: "1:866905934997:web:97cb8ebc4ed35f9e41f9c",
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-// --- APP STATE ---
-let players = []; 
-let matches = []; 
-let currentRound = 1; 
-let leaderboard = {};
-
-// --- 1. RACKY'S FUNCTION (Support & Info) ---
-const rackyBrain = {
-    tips: [
-        "Rotate courts every round to keep it fresh! 🔄",
-        "The lob is your best friend in Padel. 🎾",
-        "Communication is key—talk to your partner! 🗣️",
-        "Hydrate! It's getting intense out there. 💧"
-    ],
-    say: function(msg) {
-        const mascotText = document.getElementById('mascotText');
-        if(mascotText) mascotText.textContent = `"${msg}"`;
-    }
-};
-
-// --- 2. SHARE LINK LOGIC ---
-document.getElementById('createSession').onclick = function() {
-    const sessionId = Math.random().toString(36).substring(2, 8).toUpperCase();
-    
-    // Push session to Firebase
-    db.ref('sessions/' + sessionId).set({
-        createdAt: Date.now(),
-        status: 'active'
-    });
-
-    // Generate the actual URL
-    const joinUrl = window.location.origin + window.location.pathname + "?join=" + sessionId;
-    
-    // Update the UI
-    const infoBox = document.getElementById('sessionInfo');
-    infoBox.innerHTML = `
-        <div class="p-2 bg-blue-500/20 rounded mt-2 border border-blue-400">
-            <p class="font-bold uppercase text-[10px]">Invite Link Created!</p>
-            <input type="text" value="${joinUrl}" id="copyUrl" class="w-full bg-black/50 p-1 text-[10px] rounded my-1 outline-none">
-            <button onclick="copyLink()" class="bg-blue-500 px-2 py-1 rounded text-[10px] font-bold">COPY LINK</button>
-        </div>
-    `;
-    rackyBrain.say("Invite link is live! Send it to the squad. 📱");
-};
-
-function copyLink() {
-    const copyText = document.getElementById("copyUrl");
-    copyText.select();
-    navigator.clipboard.writeText(copyText.value);
-    alert("Link copied to clipboard!");
-}
-
-// --- 3. COURT NUMBER LOGIC ---
-document.getElementById('generateBtn').onclick = function() {
-    const raw = document.getElementById('playersInput').value.split('\n').filter(p => p.trim());
-    const courtCount = parseInt(document.getElementById('courtsInput')?.value) || 1; // Pulls from your number input
-    
-    if (raw.length < 4) {
-        alert("Need at least 4 players!");
-        return;
-    }
-
-    players = raw;
-    matches = [];
-    currentRound = 1;
-    
-    generateMatches(courtCount);
-};
-
-function generateMatches(numCourts) {
-    const shuffled = [...players].sort(() => 0.5 - Math.random());
-    const newMatches = [];
-    
-    // Use the number of courts selected by the user
-    for (let i = 0; i < numCourts * 4 && i + 3 < shuffled.length; i += 4) {
-        newMatches.push({
-            id: Date.now() + i,
-            court: (i / 4) + 1,
-            p: [shuffled[i], shuffled[i+1], shuffled[i+2], shuffled[i+3]],
-            sA: '', sB: ''
-        });
-    }
-
-    // Handle Resting Players
-    const totalPlaying = newMatches.length * 4;
-    const resting = shuffled.slice(totalPlaying);
-    const restingBox = document.getElementById('restingContainer');
-    if(restingBox) restingBox.textContent = resting.length ? `Resting this round: ${resting.join(', ')}` : '';
-
-    matches = [...matches, ...newMatches];
-    renderMatches();
-    rackyBrain.say(rackyBrain.tips[Math.floor(Math.random() * rackyBrain.tips.length)]);
-}
-
-// Reuse your existing render() and updateBoard() functions from here...
-function renderMatches() {
-    const container = document.getElementById('matchesContainer');
-    container.innerHTML = '';
-    // Show only matches from the current round
-    const currentMatches = matches.filter(m => matches.indexOf(m) >= matches.length - (Math.floor(players.length/4)));
-    
-    currentMatches.forEach(m => {
-        const div = document.createElement('div');
-        div.className = 'bg-black/60 backdrop-blur-sm p-4 rounded-2xl flex justify-between items-center border border-white/10 mb-2';
-        div.innerHTML = `
-            <div class="text-[11px] font-bold w-1/3 text-yellow-400 uppercase">Court ${m.court}: ${m.p[0]} & ${m.p[1]}</div>
-            <div class="flex gap-2">
-                <input type="number" placeholder="0" oninput="upd(${m.id},'A',this.value)" class="w-10 bg-gray-900 rounded p-1 text-center font-bold text-white">
-                <input type="number" placeholder="0" oninput="upd(${m.id},'B',this.value)" class="w-10 bg-gray-900 rounded p-1 text-center font-bold text-white">
-            </div>
-            <div class="text-[11px] font-bold w-1/3 text-right text-blue-400 uppercase">${m.p[2]} & ${m.p[3]}</div>
-        `;
-        container.appendChild(div);
-    });
-    document.getElementById('matchesSection').classList.remove('hidden');
-}
-
-function upd(id, team, val) {
-    const m = matches.find(x => x.id === id);
-    if (team === 'A') m.sA = val; else m.sB = val;
-    updateBoard();
-}
-
-function updateBoard() {
-    leaderboard = {};
-    players.forEach(p => leaderboard[p] = { pts: 0, diff: 0 });
-    const mode = document.getElementById('modeSelect').value;
-
-    matches.forEach(m => {
-        const a = parseInt(m.sA) || 0; const b = parseInt(m.sB) || 0;
-        if (m.sA === '' || m.sB === '') return;
-
-        m.p.slice(0,2).forEach(p => leaderboard[p].diff += (a - b));
-        m.p.slice(2,4).forEach(p => leaderboard[p].diff += (b - a));
-
-        if (mode === 'classic') {
-            if (a > b) m.p.slice(0,2).forEach(p => leaderboard[p].pts += 3);
-            else if (b > a) m.p.slice(2,4).forEach(p => leaderboard[p].pts += 3);
-            else m.p.forEach(p => leaderboard[p].pts += 1);
-        } else {
-            m.p.slice(0,2).forEach(p => leaderboard[p].pts += a);
-            m.p.slice(2,4).forEach(p => leaderboard[p].pts += b);
-        }
-    });
-
-    const sorted = Object.entries(leaderboard).sort((a,b) => b[1].pts - a[1].pts || b[1].diff - a[1].diff);
-    document.getElementById('leaderboardBody').innerHTML = sorted.map(([n, d], i) => `
-        <tr class="border-b border-white/5">
-            <td class="p-3 text-gray-500">#${i+1}</td>
-            <td class="p-3 font-bold">${n}</td>
-            <td class="p-3 text-yellow-400 font-black">${d.pts}</td>
-            <td class="p-3 text-xs ${d.diff >= 0 ? 'text-green-400' : 'text-red-400'}">${d.diff > 0 ? '+' : ''}${d.diff}</td>
-        </tr>
-    `).join('');
-    document.getElementById('leaderboardSection').classList.remove('hidden');
-}
-
-    
 </body>
 </html>
