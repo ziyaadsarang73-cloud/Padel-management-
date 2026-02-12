@@ -10,6 +10,13 @@
 
 </head>
 <body class="bg-gray-900 text-white p-6">
+  <div class="w-full bg-blue-800 text-white py-5 px-6 rounded-lg shadow-lg mb-6 flex items-center gap-4">
+  <div class="text-4xl">🎾</div>
+  <div>
+    <h1 class="text-3xl font-bold">PadelPilot</h1>
+    <p class="text-sm opacity-90">Racky is ready to assist</p>
+  </div>
+  </div>
 
   <h1 class="text-3xl font-bold mb-4">Padel Match Generator</h1>
 
@@ -65,6 +72,31 @@
 
   <!-- SCRIPT -->
   <script>
+    // RACKY'S BRAIN
+const rackyBrain = {
+  greetings: [
+    "Hey champ, ready to play?",
+    "Racky here — need a quick rule refresher?",
+    "Let’s get this round rolling!"
+  ],
+  rules: {
+    americano: "Americano: Each match is 24 points. Switch sides at 12.",
+    classic: "Classic scoring: 3 points for a win, 1 for a draw.",
+    goldenPoint: "Golden point: At 40–40, one point decides the game."
+  },
+  tips: [
+    "Rotate courts every round to keep things fair.",
+    "Try mixing strong and new players for balanced matches.",
+    "Remember to hydrate — padel gets intense fast."
+  ],
+  reactions: {
+    matchesGenerated: "Nice! I’ve prepared your courts. Good luck out there.",
+    scoresUpdated: "Scores updated. Smooth work!",
+    playersAdded: "Players loaded. Ready to generate matches?"
+  }
+};function rackySay(message) {
+  document.getElementById("mascotText").textContent = message;
+}
     // STATE
     let players = [];
     let matches = [];
@@ -333,9 +365,22 @@
         roundDisplay.textContent = `Round ${currentRound}`;
       }
     }
-
+// Mascot toggle
+document.getElementById("mascotButton").addEventListener("click", () => {
+  document.getElementById("mascotPanel").classList.toggle("hidden");
+});
     loadState();
+    rackySay(rackyBrain.greetings[0]);
   </script>
+  <!-- Mascot Assistant -->
+<div id="mascotButton" class="fixed bottom-4 right-4 bg-blue-600 text-white p-3 rounded-full shadow-lg cursor-pointer text-2xl">
+  🎾
+</div>
+
+<div id="mascotPanel" class="hidden fixed bottom-20 right-4 bg-gray-800 text-white p-4 rounded-lg shadow-xl w-64">
+  <div class="font-bold mb-2">Racky the Racket</div>
+  <p id="mascotText">Hi! Need help with the rules?</p>
+</div>
 
 </body>
 </html>
