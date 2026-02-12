@@ -6,7 +6,205 @@
   <title>Padel Match Generator</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
+// State
+let players = [];
+let matches = [];
+let leaderboard = {};
+let currentRound = 1;
 
+// Elements
+const playersInput = document.getElementById('playersInput');
+const courtsInput = document.getElementById('courtsInput');
+const modeSelect = document.getElementById('modeSelect');
+
+const generateBtn = document.getElementById('generateBtn');
+const resetBtn = document.getElementById('resetBtn');
+const nextRoundBtn = document.getElementById('nextRoundBtn');
+
+const matchesSection = document.getElementById('matchesSection');
+const matchesContainer = document.getElementById('matchesContainer');
+const restingContainer = document.getElementById('restingContainer');
+
+const leaderboardSection = document.getElementById('leaderboardSection');
+const leaderboardBody = document.getElementById('leaderboardBody');
+
+const roundDisplay = document.getElementById('roundDisplay');
+  generateBtn.addEventListener('click', () => {
+  const rawPlayers = playersInput.value
+    .split('\n')
+    .map(p => p.trim())
+    .filter(p => p.length > 0);
+
+  const courts = parseInt(courtsInput.value, 10);
+
+  if (rawPlayers.length < 4) {
+    alert('Please enter at least 4 players.');
+    return;
+  }
+
+  if (isNaN(courts) || courts < 1) {
+    alert('Please enter a valid number of courts.');
+    return;
+  }
+
+  players = rawPlayers;
+  currentRound = 1;
+
+  initLeaderboard();
+  generateMatches(courts);
+  renderMatches();
+  updateLeaderboard();
+
+  matchesSection.classList.remove('hidden');
+  leaderboardSection.classList.remove('hidden');
+  nextRoundBtn.classList.remove('hidden');
+  roundDisplay.classList.remove('hidden');
+  roundDisplay.textContent = `Round ${currentRound}`;
+});
+function shuffle(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function generateMatches(courts) {
+  matches = [];
+  const shuffled = shuffle(players);
+
+  const groups = [];
+  for (let i = 0; i < shuffled.length; i += 4) {
+    groups.push(shuffled.slice(i, i + 4));
+  }
+
+  const usedGroups = groups.slice(0, courts);
+  const resting = groups.slice(courts).flat();
+
+  usedGroups.forEach((group, idx) => {
+    if (group.length < 4) return;
+
+    matches.push({
+      id: idx + 1,
+      court: idx + 1,
+      players: group,
+      scoreA: '',
+      scoreB: ''
+    });
+  });
+
+  renderResting(resting);
+}
+      function initLeaderboard() {
+  leaderboard = {};
+  players.forEach(p => {
+    leaderboard[p] = { points: 0, matches: 0 };
+  });
+}
+      function renderMatches() {
+  matchesContainer.innerHTML = '';
+function renderResting(resting) {
+  if (resting.length === 0) {
+    restingContainer.textContent = '';
+    return;
+  }
+
+  restingContainer.textContent = 'Resting: ' + resting.join(', ');
+}
+      function updateLeaderboard() {
+  leaderboardBody.innerHTML = '';
+
+  const sorted = Object.entries(leaderboard)
+    .sort((a, b) => b[1].points - a[1].points);
+
+  sorted.forEach(([player, data], index) => {
+    const row = document.createElement('tr');
+
+    row.innerHTML = `
+      <td class="px-2 py-1">${index + 1}</td>
+      <td class="px-2 py-1">${player}</td>
+      <td class="px-2 py-1 text-right">${data.points}</td>
+      <td class="px-2 py-1 text-right">${data.matches}</td>
+    `;
+
+    leaderboardBody.appendChild(row);
+  });
+}
+      nextRoundBtn.addEventListener('click', () => {
+  currentRound++;
+  roundDisplay.textContent = `Round ${currentRound}`;
+
+  const courts = parseInt(courtsInput.value, 10);
+
+  generateMatches(courts);
+  renderMatches();
+});
+      document.addEventListener('input', (e) => {
+  if (e.target.matches('input[data-match]')) {
+    const matchId = parseInt(e.target.dataset.match, 10);
+    const team = e.target.dataset.team;
+    const value = e.target.value;
+
+    const match = matches.find(m => m.id === matchId);
+    if (!match) return;
+
+    if (team === 'A') match.scoreA = value;
+    if (team === 'B') match.scoreB = value;
+
+    applyScores(match);
+    updateLeaderboard();
+  }
+});
+      function applyScores(match) {
+  const a = parseInt(match.scoreA, 10);
+  const b = parseInt(match.scoreB, 10);
+
+  if (isNaN(a) || isNaN(b)) return;
+
+  // Reset previous points
+  match.players.forEach(p => {
+    leaderboard[p].points = leaderboard[p].points || 0;
+  });
+
+  // Award points
+  if (a > b) {
+    leaderboard[match.players[0]].points += 3;
+    leaderboard[match.players[1]].points += 3;
+  } else if (b > a) {
+    leaderboard[match.players[2]].points += 3;
+    leaderboard[match.players[3]].points += 3;
+  } else {
+    match.players.forEach(p => leaderboard[p].points += 1);
+  }
+
+  // Count matches played
+  match.players.forEach(p => leaderboard[p].matches++);
+}
+  matches.forEach(match => {
+    const div = document.createElement('div');
+    div.className = 'bg-gray-800 p-3 rounded';
+
+    div.innerHTML = `
+      <div class="font-semibold mb-1">Court ${match.court}</div>
+      <div class="text-sm mb-2">
+        <span class="text-green-300">${match.players[0]}</span> &
+        <span class="text-green-300">${match.players[1]}</span>
+        vs
+        <span class="text-blue-300">${match.players[2]}</span> &
+        <span class="text-blue-300">${match.players[3]}</span>
+      </div>
+      <div class="flex gap-2">
+        <input type="number" min="0" class="w-16 p-1 bg-gray-700 rounded text-center"
+          placeholder="A" data-match="${match.id}" data-team="A">
+        <input type="number" min="0" class="w-16 p-1 bg-gray-700 rounded text-center"
+          placeholder="B" data-match="${match.id}" data-team="B">
+      </div>
+    `;
+
+    matchesContainer.appendChild(div);
+  });
+}
 <body class="bg-gray-900 text-gray-100 p-4">
   <div class="max-w-lg mx-auto space-y-4">
 
