@@ -1,6 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+ <!-- Firebase (Compat Version — works with your existing code) -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
+    authDomain: "padelpilot-4531f.firebaseapp.com",
+    databaseURL: "https://padelpilot-4531f-default-rtdb.firebaseio.com",
+    projectId: "padelpilot-4531f",
+    storageBucket: "padelpilot-4531f.appspot.com",
+    messagingSenderId: "866905934997",
+    appId: "1:866905934997:web:97c8b8ebc4ed35f9e41f9c",
+    measurementId: "G-ZZJ8EEHZD2"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+</script>
   <meta charset="UTF-8">
   <title>Padel Match Generator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,7 +32,12 @@
   <div class="w-full bg-blue-800 text-white py-5 px-6 rounded-lg shadow-lg mb-6 flex items-center gap-4">
   <div class="text-4xl">🎾</div>
   <div>
-    <h1 class="text-3xl font-bold">PadelPilot</h1>
+    
+    <h1 class="text-3xl font-bol<button id="createSessionBtn" class="bg-blue-600 px-4 py-2 rounded">
+  Create Session
+</button>
+
+<div id="sessionInfo" class="mt-4 text-green-400"></div>d">PadelPilot</h1>
     <p class="text-sm opacity-90">Racky is ready to assist</p>
   </div>
   </div>
@@ -697,6 +721,35 @@ document.getElementById("mascotButton").addEventListener("click", () => {
 
   loadState();
         </script>
+  function generateSessionId() {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}document.getElementById("createSession").addEventListener("click", () => {
+  const sessionId = generateSessionId();
+
+  db.ref("sessions/" + sessionId).set({
+    players: {},
+    createdAt: Date.now()
+  });
+
+  document.getElementById("sessionInfo").innerHTML =
+    `Session created: <strong>${sessionId}</strong><br>
+     Share this link:<br>
+     https://YOUR-GITHUB-PAGES-URL/join.html?session=${sessionId}`;
+
+  listenForPlayers(sessionId);
+});
+  function listenForPlayers(sessionId) {
+  db.ref(`sessions/${sessionId}/players`).on("value", snapshot => {
+    const players = snapshot.val() ? Object.values(snapshot.val()) : [];
+
+    document.getElementById("playersInput").value = players.join("\n");
+
+    if (players.length > 0) {
+      const lastPlayer = players[players.length - 1];
+      console.log("New player joined:", lastPlayer);
+    }
+  });
+}
   
 
 </body>
