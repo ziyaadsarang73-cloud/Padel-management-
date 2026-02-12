@@ -34,19 +34,19 @@
                 <img src="59464.jpg" alt="Racky" class="w-20 h-20 rounded-full border-4 border-yellow-400 bg-white object-cover">
             </div>
             <div class="flex-1">
-                <h1 class="text-3xl font-black italic tracking-tighter uppercase">Padel<span class="text-yellow-400">Pilot</span></h1>
+                <h1 class="text-3xl font-black italic tracking-tighter uppercase leading-none">Padel<span class="text-yellow-400">Pilot</span></h1>
                 <div class="bg-black/30 px-3 py-1 rounded-lg mt-1 inline-block">
-                    <p id="mascotText" class="text-yellow-200 text-sm font-bold italic">"Ready to dominate the court?"</p>
+                    <p id="mascotText" class="text-yellow-200 text-sm font-bold italic">"Syncing your squad to the cloud..."</p>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-gray-900/80 p-6 rounded-3xl border border-gray-700">
-            <h3 class="text-xs font-bold uppercase text-blue-400 mb-4 tracking-widest">Settings</h3>
+        <div class="bg-gray-900/80 p-6 rounded-3xl border border-gray-700 shadow-xl">
+            <h3 class="text-xs font-bold uppercase text-blue-400 mb-4 tracking-widest">Tournament Settings</h3>
             
-            <textarea id="playersInput" class="w-full bg-black/50 border border-gray-700 p-3 rounded-xl h-40 outline-none focus:border-yellow-400" placeholder="Enter players..."></textarea>
+            <textarea id="playersInput" class="w-full bg-black/50 border border-gray-700 p-3 rounded-xl h-40 outline-none focus:border-yellow-400 text-white" placeholder="Enter players (one per line)..."></textarea>
             
             <div class="grid grid-cols-2 gap-3 mt-4">
                 <div>
@@ -55,35 +55,35 @@
                 </div>
                 <div>
                     <label class="block text-[10px] text-gray-400 font-bold uppercase">Mode</label>
-                    <select id="modeSelect" class="w-full bg-black/50 p-2 rounded-lg border border-gray-700 text-xs">
-                        <option value="classic">Classic</option>
-                        <option value="americano">Americano</option>
+                    <select id="modeSelect" class="w-full bg-black/50 p-2 rounded-lg border border-gray-700 text-xs text-white">
+                        <option value="classic">Classic (3pts)</option>
+                        <option value="americano">Americano (Total)</option>
                     </select>
                 </div>
             </div>
 
-            <button id="generateBtn" class="w-full mt-6 bg-yellow-400 text-blue-900 font-black py-3 rounded-xl uppercase shadow-lg hover:scale-105 transition">Generate Round</button>
+            <button id="generateBtn" class="w-full mt-6 bg-yellow-400 text-blue-900 font-black py-3 rounded-xl uppercase shadow-lg hover:scale-105 transition-transform">Generate Round</button>
             
             <hr class="my-6 border-gray-800">
             
-            <button id="createSession" class="w-full text-blue-400 text-xs font-bold py-2 border border-blue-400/30 rounded-lg">🌐 Create Live Join Link</button>
+            <button id="createSession" class="w-full text-blue-400 text-xs font-bold py-2 border border-blue-400/30 rounded-lg hover:bg-blue-400/10 transition">🌐 Create Live Join Link</button>
             <div id="sessionInfo" class="mt-2 text-center text-xs break-all"></div>
         </div>
 
         <div class="md:col-span-2 space-y-6">
             <div id="matchesSection" class="hidden">
-                <div class="flex justify-between items-center mb-4 bg-black/30 p-2 rounded-xl">
+                <div class="flex justify-between items-center mb-4 bg-black/30 p-2 rounded-xl border border-white/5">
                     <h2 id="roundDisplay" class="text-xl font-black italic uppercase">Round 1</h2>
-                    <button id="nextBtn" class="bg-green-500 px-4 py-1 rounded-full font-bold text-xs uppercase">Next Round</button>
+                    <button id="nextBtn" class="bg-green-500 px-4 py-1 rounded-full font-bold text-xs uppercase shadow-lg">Next Round</button>
                 </div>
                 <div id="matchesContainer" class="grid grid-cols-1 gap-3"></div>
-                <div id="restingContainer" class="mt-4 p-2 bg-yellow-400/10 rounded-lg text-yellow-300 text-xs text-center font-bold italic"></div>
+                <div id="restingContainer" class="mt-4 p-2 bg-yellow-400/10 rounded-lg text-yellow-300 text-xs text-center font-bold italic border border-yellow-400/20"></div>
             </div>
 
-            <div id="leaderboardSection" class="hidden bg-gray-900/90 rounded-3xl overflow-hidden border border-gray-700">
-                <div class="p-4 bg-gray-800 flex justify-between items-center">
-                    <span class="font-bold text-sm">🏆 STANDINGS</span>
-                    <button onclick="downloadResults()" class="text-[10px] bg-white/10 px-3 py-1 rounded-full font-bold">📸 SAVE</button>
+            <div id="leaderboardSection" class="hidden bg-gray-900/90 rounded-3xl overflow-hidden border border-gray-700 shadow-2xl">
+                <div class="p-4 bg-gray-800 flex justify-between items-center border-b border-gray-700">
+                    <span class="font-bold text-sm tracking-widest">🏆 LIVE STANDINGS</span>
+                    <button onclick="downloadResults()" class="text-[10px] bg-white/10 px-3 py-1 rounded-full font-bold uppercase border border-white/10 hover:bg-white/20 transition">📸 Save Image</button>
                 </div>
                 <table class="w-full text-left text-sm">
                     <tbody id="leaderboardBody"></tbody>
@@ -94,83 +94,7 @@
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AiZaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
-            authDomain: "padelpilot-4531f.firebaseapp.com",
-            databaseURL: "https://padelpilot-4531f-default-rtdb.firebaseio.com",
-            projectId: "padelpilot-4531f",
-            storageBucket: "padelpilot-4531f.appspot.com",
-            messagingSenderId: "866905934997",
-            appId: "1:866905934997:web:97cb8ebc4ed35f9e41f9c",
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        let players = []; let matches = []; let currentRound = 1;
-
-        function rackySay(msg) { document.getElementById('mascotText').textContent = `"${msg}"`; }
-
-        // --- FIXED SHARE LINK LOGIC ---
-        document.getElementById('createSession').onclick = function() {
-            const sessionId = Math.random().toString(36).substring(2, 8).toUpperCase();
-            db.ref('sessions/' + sessionId).set({ active: true, time: Date.now() });
-            
-            // Build absolute URL for GitHub Pages
-            const currentUrl = window.location.href.split('?')[0];
-            const joinUrl = currentUrl + "?join=" + sessionId;
-            
-            document.getElementById('sessionInfo').innerHTML = `
-                <div class="p-2 bg-blue-500/20 border border-blue-400 rounded-lg mt-2">
-                    <p class="font-bold text-blue-400">ID: ${sessionId}</p>
-                    <a href="${joinUrl}" class="text-[10px] underline text-white block truncate">${joinUrl}</a>
-                    <button onclick="navigator.clipboard.writeText('${joinUrl}'); alert('Copied!');" class="mt-1 bg-blue-500 text-white px-3 py-1 rounded text-[10px] font-bold">COPY LINK</button>
-                </div>
-            `;
-            rackySay("Join link created! Time to invite the squad.");
-        };
-
-        // --- GENERATION LOGIC ---
-        document.getElementById('generateBtn').onclick = () => {
-            const raw = document.getElementById('playersInput').value.split('\n').filter(p => p.trim());
-            if (raw.length < 4) return alert("Add at least 4 players!");
-            players = raw; matches = []; currentRound = 1;
-            startRound();
-        };
-
-        document.getElementById('nextBtn').onclick = () => { currentRound++; startRound(); };
-
-        function startRound() {
-            const courts = parseInt(document.getElementById('courtsInput').value) || 1;
-            const shuffled = [...players].sort(() => 0.5 - Math.random());
-            const newMatches = [];
-            
-            for (let i = 0; i < courts * 4 && i + 3 < shuffled.length; i += 4) {
-                newMatches.push({
-                    id: Date.now() + i,
-                    court: (i/4) + 1,
-                    p: [shuffled[i], shuffled[i+1], shuffled[i+2], shuffled[i+3]],
-                    sA: '', sB: ''
-                });
-            }
-
-            const totalInGame = newMatches.length * 4;
-            const resting = shuffled.slice(totalInGame);
-            document.getElementById('restingContainer').textContent = resting.length ? `Resting: ${resting.join(', ')}` : 'Everyone is playing!';
-            document.getElementById('roundDisplay').textContent = `Round ${currentRound}`;
-
-            matches = [...matches, ...newMatches];
-            render();
-            updateBoard();
-            rackySay("New round is live! Get to your courts.");
-        }
-
-        function render() {
-            const container = document.getElementById('matchesContainer');
-            container.innerHTML = '';
-            // Only show the most recent matches for the current round
-            const count = parseInt(document.getElementById('courtsInput').value) || 1;
-            const currentRoundMatches = matches.slice(-count);
-        // --- FIREBASE SETUP ---
+        // --- 1. FIREBASE SETUP ---
         const firebaseConfig = {
             apiKey: "AiZaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
             authDomain: "padelpilot-4531f.firebaseapp.com",
@@ -188,25 +112,24 @@
 
         function rackySay(msg) { document.getElementById('mascotText').textContent = `"${msg}"`; }
 
-        // --- NEW: AUTO-LOAD SESSION IF JOINING ---
+        // --- 2. LIVE SYNC ENGINE ---
         if (currentSessionId) {
             db.ref('sessions/' + currentSessionId).on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data && data.players) {
                     document.getElementById('playersInput').value = data.players;
                     players = data.players.split('\n').filter(p => p.trim());
-                    rackySay("Syncing squad names from the cloud... ☁️");
+                    rackySay("Syncing squad from the cloud! ☁️");
                 }
             });
-            document.getElementById('sessionInfo').innerHTML = `<p class="text-green-400 font-bold">Connected to: ${currentSessionId}</p>`;
+            document.getElementById('sessionInfo').innerHTML = `<p class="text-green-400 font-bold p-2 bg-green-900/20 rounded">CONNECTED TO: ${currentSessionId}</p>`;
         }
 
-        // --- FIXED SHARE LINK LOGIC ---
+        // --- 3. SESSION CREATION ---
         document.getElementById('createSession').onclick = function() {
             const sessionId = Math.random().toString(36).substring(2, 8).toUpperCase();
             const playerList = document.getElementById('playersInput').value;
             
-            // Save initial data
             db.ref('sessions/' + sessionId).set({
                 players: playerList,
                 active: true,
@@ -217,25 +140,23 @@
             const joinUrl = currentUrl + "?join=" + sessionId;
             
             document.getElementById('sessionInfo').innerHTML = `
-                <div class="p-2 bg-blue-500/20 border border-blue-400 rounded-lg mt-2">
-                    <p class="font-bold text-blue-400">ID: ${sessionId}</p>
-                    <button onclick="navigator.clipboard.writeText('${joinUrl}'); alert('Link Copied!');" class="mt-1 bg-blue-500 text-white px-3 py-1 rounded text-[10px] font-bold w-full uppercase">Copy Join Link</button>
+                <div class="p-3 bg-blue-500/20 border border-blue-400 rounded-lg mt-2">
+                    <p class="font-bold text-blue-400 mb-2">ID: ${sessionId}</p>
+                    <button onclick="navigator.clipboard.writeText('${joinUrl}'); alert('Copied!');" class="bg-blue-500 text-white px-3 py-2 rounded text-[10px] font-black w-full uppercase shadow-lg">Copy Join Link</button>
                 </div>
             `;
             currentSessionId = sessionId;
-            rackySay("Session saved! Anyone with this link will see your player list.");
+            rackySay("Session live! Send the link to your friends.");
         };
 
-        // --- SYNC PLAYERS AS YOU TYPE ---
+        // Sync names while typing
         document.getElementById('playersInput').oninput = function() {
             if (currentSessionId) {
-                db.ref('sessions/' + currentSessionId).update({
-                    players: this.value
-                });
+                db.ref('sessions/' + currentSessionId).update({ players: this.value });
             }
         };
 
-        // --- GENERATION LOGIC ---
+        // --- 4. MATCH ENGINE ---
         document.getElementById('generateBtn').onclick = () => {
             const raw = document.getElementById('playersInput').value.split('\n').filter(p => p.trim());
             if (raw.length < 4) return alert("Add at least 4 players!");
@@ -267,7 +188,7 @@
             matches = [...matches, ...newMatches];
             render();
             updateBoard();
-            rackySay("Matches generated for " + courts + " courts!");
+            rackySay("Matches ready! Check your court numbers.");
         }
 
         function render() {
@@ -278,12 +199,12 @@
 
             currentRoundMatches.forEach(m => {
                 const div = document.createElement('div');
-                div.className = 'bg-black/60 p-4 rounded-2xl flex justify-between items-center border border-white/10 mb-2';
+                div.className = 'bg-black/60 p-4 rounded-2xl flex justify-between items-center border border-white/10 shadow-lg';
                 div.innerHTML = `
                     <div class="text-[10px] font-bold w-1/3 text-yellow-400 uppercase leading-tight">Court ${m.court}<br>${m.p[0]} & ${m.p[1]}</div>
                     <div class="flex gap-2">
-                        <input type="number" oninput="upd(${m.id},'A',this.value)" class="w-10 bg-gray-900 rounded p-1 text-center font-bold text-white border border-white/10">
-                        <input type="number" oninput="upd(${m.id},'B',this.value)" class="w-10 bg-gray-900 rounded p-1 text-center font-bold text-white border border-white/10">
+                        <input type="number" oninput="upd(${m.id},'A',this.value)" class="w-10 bg-gray-900 rounded p-1 text-center font-bold text-white border border-white/10 outline-none focus:border-yellow-400">
+                        <input type="number" oninput="upd(${m.id},'B',this.value)" class="w-10 bg-gray-900 rounded p-1 text-center font-bold text-white border border-white/10 outline-none focus:border-blue-400">
                     </div>
                     <div class="text-[10px] font-bold w-1/3 text-right text-blue-400 uppercase leading-tight">Court ${m.court}<br>${m.p[2]} & ${m.p[3]}</div>
                 `;
@@ -320,11 +241,11 @@
 
             const sorted = Object.entries(l).sort((a,b) => b[1].pts - a[1].pts || b[1].diff - a[1].diff);
             document.getElementById('leaderboardBody').innerHTML = sorted.map(([n, d], i) => `
-                <tr class="border-b border-white/5">
+                <tr class="border-b border-white/5 hover:bg-white/5 transition">
                     <td class="p-3 text-gray-500 font-bold">#${i+1}</td>
                     <td class="p-3 font-bold text-xs uppercase">${n}</td>
                     <td class="p-3 text-yellow-400 font-black">${d.pts}</td>
-                    <td class="p-3 text-[10px] ${d.diff >= 0 ? 'text-green-400' : 'text-red-400'}">${d.diff > 0 ? '+' : ''}${d.diff}</td>
+                    <td class="p-3 text-[10px] font-bold ${d.diff >= 0 ? 'text-green-400' : 'text-red-400'}">${d.diff > 0 ? '+' : ''}${d.diff}</td>
                 </tr>
             `).join('');
             document.getElementById('leaderboardSection').classList.remove('hidden');
@@ -335,7 +256,6 @@
                 const link = document.createElement('a'); link.download = 'standings.png'; link.href = canvas.toDataURL(); link.click();
             });
         }
-
     </script>
 </body>
 </html>
