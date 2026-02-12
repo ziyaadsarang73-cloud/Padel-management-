@@ -35,8 +35,8 @@
             </div>
             <div class="flex-1">
                 <h1 class="text-3xl font-black italic tracking-tighter uppercase leading-none">Padel<span class="text-yellow-400">Pilot</span></h1>
-                <div class="bg-black/30 px-3 py-1 rounded-lg mt-1 inline-block">
-                    <p id="mascotText" class="text-yellow-200 text-sm font-bold italic">"Syncing your squad to the cloud..."</p>
+                <div class="bg-black/30 px-3 py-1 rounded-lg mt-1 inline-block border border-white/10">
+                    <p id="mascotText" class="text-yellow-200 text-sm font-bold italic">"Ready to organize the squad?"</p>
                 </div>
             </div>
         </div>
@@ -44,10 +44,14 @@
 
     <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-gray-900/80 p-6 rounded-3xl border border-gray-700 shadow-xl">
-            <h3 class="text-xs font-bold uppercase text-blue-400 mb-4 tracking-widest">Tournament Settings</h3>
+            <h3 class="text-xs font-bold uppercase text-blue-400 mb-4 tracking-widest text-center">Tournament Control</h3>
             
             <textarea id="playersInput" class="w-full bg-black/50 border border-gray-700 p-3 rounded-xl h-40 outline-none focus:border-yellow-400 text-white" placeholder="Enter players (one per line)..."></textarea>
             
+            <button id="savePlayersBtn" class="w-full mt-2 bg-blue-600/80 text-white font-bold py-2 rounded-xl text-[10px] uppercase shadow-md border border-blue-400/50 hover:bg-blue-500 transition mb-4">
+                💾 Save & Sync Squad
+            </button>
+
             <div class="grid grid-cols-2 gap-3 mt-4">
                 <div>
                     <label class="block text-[10px] text-gray-400 font-bold uppercase">Courts</label>
@@ -56,8 +60,8 @@
                 <div>
                     <label class="block text-[10px] text-gray-400 font-bold uppercase">Mode</label>
                     <select id="modeSelect" class="w-full bg-black/50 p-2 rounded-lg border border-gray-700 text-xs text-white">
-                        <option value="classic">Classic (3pts)</option>
-                        <option value="americano">Americano (Total)</option>
+                        <option value="classic">Classic</option>
+                        <option value="americano">Americano</option>
                     </select>
                 </div>
             </div>
@@ -83,7 +87,7 @@
             <div id="leaderboardSection" class="hidden bg-gray-900/90 rounded-3xl overflow-hidden border border-gray-700 shadow-2xl">
                 <div class="p-4 bg-gray-800 flex justify-between items-center border-b border-gray-700">
                     <span class="font-bold text-sm tracking-widest">🏆 LIVE STANDINGS</span>
-                    <button onclick="downloadResults()" class="text-[10px] bg-white/10 px-3 py-1 rounded-full font-bold uppercase border border-white/10 hover:bg-white/20 transition">📸 Save Image</button>
+                    <button onclick="downloadResults()" class="text-[10px] bg-white/10 px-3 py-1 rounded-full font-bold uppercase border border-white/10 hover:bg-white/20 transition">📸 Export</button>
                 </div>
                 <table class="w-full text-left text-sm">
                     <tbody id="leaderboardBody"></tbody>
@@ -94,7 +98,7 @@
     </div>
 
     <script>
-        // --- 1. FIREBASE SETUP ---
+        // FIREBASE SETUP
         const firebaseConfig = {
             apiKey: "AiZaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
             authDomain: "padelpilot-4531f.firebaseapp.com",
@@ -112,33 +116,25 @@
 
         function rackySay(msg) { document.getElementById('mascotText').textContent = `"${msg}"`; }
 
-        // --- 2. LIVE SYNC ENGINE ---
+        // LIVE SYNC ENGINE
         if (currentSessionId) {
             db.ref('sessions/' + currentSessionId).on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data && data.players) {
                     document.getElementById('playersInput').value = data.players;
                     players = data.players.split('\n').filter(p => p.trim());
-                    rackySay("Syncing squad from the cloud! ☁️");
+                    rackySay("Connected! Your squad is synced. ☁️");
                 }
             });
-            document.getElementById('sessionInfo').innerHTML = `<p class="text-green-400 font-bold p-2 bg-green-900/20 rounded">CONNECTED TO: ${currentSessionId}</p>`;
+            document.getElementById('sessionInfo').innerHTML = `<p class="text-green-400 font-bold p-2 bg-green-900/20 rounded border border-green-500/30">ID: ${currentSessionId}</p>`;
         }
 
-        // --- 3. SESSION CREATION ---
+        // CREATE SESSION
         document.getElementById('createSession').onclick = function() {
             const sessionId = Math.random().toString(36).substring(2, 8).toUpperCase();
             const playerList = document.getElementById('playersInput').value;
-            
-            db.ref('sessions/' + sessionId).set({
-                players: playerList,
-                active: true,
-                time: Date.now()
-            });
-            
-            const currentUrl = window.location.href.split('?')[0];
-            const joinUrl = currentUrl + "?join=" + sessionId;
-            
+            db.ref('sessions/' + sessionId).set({ players: playerList, active: true, time: Date.now() });
+            const joinUrl = window.location.href.split('?')[0] + "?join=" + sessionId;
             document.getElementById('sessionInfo').innerHTML = `
                 <div class="p-3 bg-blue-500/20 border border-blue-400 rounded-lg mt-2">
                     <p class="font-bold text-blue-400 mb-2">ID: ${sessionId}</p>
@@ -146,17 +142,23 @@
                 </div>
             `;
             currentSessionId = sessionId;
-            rackySay("Session live! Send the link to your friends.");
+            rackySay("Link ready! Send it to the players.");
         };
 
-        // Sync names while typing
-        document.getElementById('playersInput').oninput = function() {
+        // SAVE BUTTON LOGIC
+        document.getElementById('savePlayersBtn').onclick = function() {
             if (currentSessionId) {
-                db.ref('sessions/' + currentSessionId).update({ players: this.value });
+                const list = document.getElementById('playersInput').value;
+                db.ref('sessions/' + currentSessionId).update({ players: list }).then(() => {
+                    alert("Squad Synced Successfully!");
+                    rackySay("Squad locked and saved to the cloud! 🔒");
+                });
+            } else {
+                alert("Please create a Live Join Link first!");
             }
         };
 
-        // --- 4. MATCH ENGINE ---
+        // MATCH LOGIC
         document.getElementById('generateBtn').onclick = () => {
             const raw = document.getElementById('playersInput').value.split('\n').filter(p => p.trim());
             if (raw.length < 4) return alert("Add at least 4 players!");
@@ -170,34 +172,22 @@
             const courts = parseInt(document.getElementById('courtsInput').value) || 1;
             const shuffled = [...players].sort(() => 0.5 - Math.random());
             const newMatches = [];
-            
             for (let i = 0; i < courts * 4 && i + 3 < shuffled.length; i += 4) {
-                newMatches.push({
-                    id: Date.now() + i,
-                    court: (i/4) + 1,
-                    p: [shuffled[i], shuffled[i+1], shuffled[i+2], shuffled[i+3]],
-                    sA: '', sB: ''
-                });
+                newMatches.push({ id: Date.now() + i, court: (i/4) + 1, p: [shuffled[i], shuffled[i+1], shuffled[i+2], shuffled[i+3]], sA: '', sB: '' });
             }
-
-            const totalInGame = newMatches.length * 4;
-            const resting = shuffled.slice(totalInGame);
-            document.getElementById('restingContainer').textContent = resting.length ? `Resting: ${resting.join(', ')}` : 'Everyone is playing!';
+            const resting = shuffled.slice(newMatches.length * 4);
+            document.getElementById('restingContainer').textContent = resting.length ? `Resting: ${resting.join(', ')}` : 'Full court engagement!';
             document.getElementById('roundDisplay').textContent = `Round ${currentRound}`;
-
             matches = [...matches, ...newMatches];
-            render();
-            updateBoard();
-            rackySay("Matches ready! Check your court numbers.");
+            render(); updateBoard();
+            rackySay("Courts assigned. Let's play!");
         }
 
         function render() {
             const container = document.getElementById('matchesContainer');
             container.innerHTML = '';
             const count = parseInt(document.getElementById('courtsInput').value) || 1;
-            const currentRoundMatches = matches.slice(-count);
-
-            currentRoundMatches.forEach(m => {
+            matches.slice(-count).forEach(m => {
                 const div = document.createElement('div');
                 div.className = 'bg-black/60 p-4 rounded-2xl flex justify-between items-center border border-white/10 shadow-lg';
                 div.innerHTML = `
@@ -220,10 +210,8 @@
         }
 
         function updateBoard() {
-            let l = {};
-            players.forEach(p => l[p] = { pts: 0, diff: 0 });
+            let l = {}; players.forEach(p => l[p] = { pts: 0, diff: 0 });
             const mode = document.getElementById('modeSelect').value;
-
             matches.forEach(m => {
                 const a = parseInt(m.sA) || 0; const b = parseInt(m.sB) || 0;
                 if (m.sA === '' || m.sB === '') return;
@@ -238,7 +226,6 @@
                     m.p.slice(2,4).forEach(p => l[p].pts += b);
                 }
             });
-
             const sorted = Object.entries(l).sort((a,b) => b[1].pts - a[1].pts || b[1].diff - a[1].diff);
             document.getElementById('leaderboardBody').innerHTML = sorted.map(([n, d], i) => `
                 <tr class="border-b border-white/5 hover:bg-white/5 transition">
