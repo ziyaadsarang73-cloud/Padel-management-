@@ -36,7 +36,7 @@
             <div class="flex-1">
                 <h1 class="text-3xl font-black italic tracking-tighter uppercase leading-none">Padel<span class="text-yellow-400">Pilot</span></h1>
                 <div class="bg-black/30 px-3 py-1 rounded-lg mt-1 inline-block border border-white/10">
-                    <p id="mascotText" class="text-yellow-200 text-sm font-bold italic">"Ready to organize the squad?"</p>
+                    <p id="mascotText" class="text-yellow-200 text-sm font-bold italic">"Name your meet to start syncing!"</p>
                 </div>
             </div>
         </div>
@@ -44,12 +44,23 @@
 
     <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-gray-900/80 p-6 rounded-3xl border border-gray-700 shadow-xl">
-            <h3 class="text-xs font-bold uppercase text-blue-400 mb-4 tracking-widest text-center">Tournament Control</h3>
+            <h3 class="text-xs font-bold uppercase text-blue-400 mb-4 tracking-widest text-center">Meet Setup</h3>
             
-            <textarea id="playersInput" class="w-full bg-black/50 border border-gray-700 p-3 rounded-xl h-40 outline-none focus:border-yellow-400 text-white" placeholder="Enter players (one per line)..."></textarea>
+            <div class="mb-4">
+                <label class="block text-[10px] text-gray-400 font-bold uppercase mb-1">Meet Name (e.g. FridayPadel)</label>
+                <div class="flex gap-2">
+                    <input id="meetNameInput" type="text" class="flex-1 bg-black/50 border border-gray-700 p-2 rounded-lg text-white text-sm outline-none focus:border-blue-400" placeholder="Enter Name">
+                    <button id="connectMeetBtn" class="bg-blue-600 px-3 rounded-lg text-[10px] font-bold uppercase">Connect</button>
+                </div>
+                <p id="meetStatus" class="text-[9px] mt-1 text-gray-500 italic">Not connected to cloud.</p>
+            </div>
+
+            <hr class="border-gray-800 mb-4">
+
+            <textarea id="playersInput" class="w-full bg-black/50 border border-gray-700 p-3 rounded-xl h-40 outline-none focus:border-yellow-400 text-white" placeholder="Enter players..."></textarea>
             
-            <button id="savePlayersBtn" class="w-full mt-2 bg-blue-600/80 text-white font-bold py-2 rounded-xl text-[10px] uppercase shadow-md border border-blue-400/50 hover:bg-blue-500 transition mb-4">
-                💾 Save & Sync Squad
+            <button id="savePlayersBtn" class="w-full mt-2 bg-green-600/80 text-white font-bold py-2 rounded-xl text-[10px] uppercase shadow-md border border-green-400/50 hover:bg-green-500 transition mb-4">
+                💾 Sync Squad to Cloud
             </button>
 
             <div class="grid grid-cols-2 gap-3 mt-4">
@@ -68,10 +79,9 @@
 
             <button id="generateBtn" class="w-full mt-6 bg-yellow-400 text-blue-900 font-black py-3 rounded-xl uppercase shadow-lg hover:scale-105 transition-transform">Generate Round</button>
             
-            <hr class="my-6 border-gray-800">
-            
-            <button id="createSession" class="w-full text-blue-400 text-xs font-bold py-2 border border-blue-400/30 rounded-lg hover:bg-blue-400/10 transition">🌐 Create Live Join Link</button>
-            <div id="sessionInfo" class="mt-2 text-center text-xs break-all"></div>
+            <div id="shareSection" class="hidden mt-6 pt-6 border-t border-gray-800">
+                <button id="copyLinkBtn" class="w-full text-blue-400 text-xs font-bold py-2 border border-blue-400/30 rounded-lg hover:bg-blue-400/10 transition uppercase">🔗 Copy Join Link</button>
+            </div>
         </div>
 
         <div class="md:col-span-2 space-y-6">
@@ -87,7 +97,7 @@
             <div id="leaderboardSection" class="hidden bg-gray-900/90 rounded-3xl overflow-hidden border border-gray-700 shadow-2xl">
                 <div class="p-4 bg-gray-800 flex justify-between items-center border-b border-gray-700">
                     <span class="font-bold text-sm tracking-widest">🏆 LIVE STANDINGS</span>
-                    <button onclick="downloadResults()" class="text-[10px] bg-white/10 px-3 py-1 rounded-full font-bold uppercase border border-white/10 hover:bg-white/20 transition">📸 Export</button>
+                    <button onclick="downloadResults()" class="text-[10px] bg-white/10 px-3 py-1 rounded-full font-bold uppercase border border-white/10">📸 Export</button>
                 </div>
                 <table class="w-full text-left text-sm">
                     <tbody id="leaderboardBody"></tbody>
@@ -112,56 +122,64 @@
         const db = firebase.database();
 
         let players = []; let matches = []; let currentRound = 1;
-        let currentSessionId = new URLSearchParams(window.location.search).get('join');
+        let activeMeetId = new URLSearchParams(window.location.search).get('meet');
 
         function rackySay(msg) { document.getElementById('mascotText').textContent = `"${msg}"`; }
 
-        // LIVE SYNC ENGINE
-        if (currentSessionId) {
-            db.ref('sessions/' + currentSessionId).on('value', (snapshot) => {
+        // CONNECT TO MEET
+        function connectToMeet(id) {
+            if (!id) return;
+            activeMeetId = id.replace(/\s+/g, '-').toLowerCase(); // Clean name
+            
+            db.ref('meets/' + activeMeetId).on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data && data.players) {
                     document.getElementById('playersInput').value = data.players;
                     players = data.players.split('\n').filter(p => p.trim());
-                    rackySay("Connected! Your squad is synced. ☁️");
+                    rackySay("Synced with " + activeMeetId + "! ☁️");
                 }
             });
-            document.getElementById('sessionInfo').innerHTML = `<p class="text-green-400 font-bold p-2 bg-green-900/20 rounded border border-green-500/30">ID: ${currentSessionId}</p>`;
+
+            document.getElementById('meetStatus').textContent = "Connected to: " + activeMeetId;
+            document.getElementById('meetStatus').className = "text-[9px] mt-1 text-green-400 font-bold";
+            document.getElementById('shareSection').classList.remove('hidden');
         }
 
-        // CREATE SESSION
-        document.getElementById('createSession').onclick = function() {
-            const sessionId = Math.random().toString(36).substring(2, 8).toUpperCase();
-            const playerList = document.getElementById('playersInput').value;
-            db.ref('sessions/' + sessionId).set({ players: playerList, active: true, time: Date.now() });
-            const joinUrl = window.location.href.split('?')[0] + "?join=" + sessionId;
-            document.getElementById('sessionInfo').innerHTML = `
-                <div class="p-3 bg-blue-500/20 border border-blue-400 rounded-lg mt-2">
-                    <p class="font-bold text-blue-400 mb-2">ID: ${sessionId}</p>
-                    <button onclick="navigator.clipboard.writeText('${joinUrl}'); alert('Copied!');" class="bg-blue-500 text-white px-3 py-2 rounded text-[10px] font-black w-full uppercase shadow-lg">Copy Join Link</button>
-                </div>
-            `;
-            currentSessionId = sessionId;
-            rackySay("Link ready! Send it to the players.");
+        // AUTO-CONNECT ON PAGE LOAD
+        if (activeMeetId) {
+            document.getElementById('meetNameInput').value = activeMeetId;
+            connectToMeet(activeMeetId);
+        }
+
+        // BUTTON: CONNECT
+        document.getElementById('connectMeetBtn').onclick = () => {
+            const name = document.getElementById('meetNameInput').value;
+            if (!name) return alert("Enter a meet name first!");
+            connectToMeet(name);
+            rackySay("Searching for " + name + "...");
         };
 
-        // SAVE BUTTON LOGIC
+        // BUTTON: SAVE
         document.getElementById('savePlayersBtn').onclick = function() {
-            if (currentSessionId) {
-                const list = document.getElementById('playersInput').value;
-                db.ref('sessions/' + currentSessionId).update({ players: list }).then(() => {
-                    alert("Squad Synced Successfully!");
-                    rackySay("Squad locked and saved to the cloud! 🔒");
-                });
-            } else {
-                alert("Please create a Live Join Link first!");
-            }
+            if (!activeMeetId) return alert("Connect to a Meet Name first!");
+            const list = document.getElementById('playersInput').value;
+            db.ref('meets/' + activeMeetId).update({ players: list }).then(() => {
+                alert("Meet '" + activeMeetId + "' updated!");
+                rackySay("Squad saved to the cloud! 🔒");
+            });
+        };
+
+        // BUTTON: COPY LINK
+        document.getElementById('copyLinkBtn').onclick = () => {
+            const url = window.location.href.split('?')[0] + "?meet=" + activeMeetId;
+            navigator.clipboard.writeText(url);
+            alert("Join Link Copied for Meet: " + activeMeetId);
         };
 
         // MATCH LOGIC
         document.getElementById('generateBtn').onclick = () => {
             const raw = document.getElementById('playersInput').value.split('\n').filter(p => p.trim());
-            if (raw.length < 4) return alert("Add at least 4 players!");
+            if (raw.length < 4) return alert("Add 4+ players!");
             players = raw; matches = []; currentRound = 1;
             startRound();
         };
@@ -180,7 +198,7 @@
             document.getElementById('roundDisplay').textContent = `Round ${currentRound}`;
             matches = [...matches, ...newMatches];
             render(); updateBoard();
-            rackySay("Courts assigned. Let's play!");
+            rackySay("Round " + currentRound + " is live!");
         }
 
         function render() {
