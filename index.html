@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PadelPilot Pro - Stable</title>
+    <title>PadelPilot Stable</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -34,6 +34,10 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .nav-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 450px; z-index: 100; }
+        
+        /* Clean Input Styling for Match Pass */
+        .editable-pass-input { background: transparent; border: none; font-weight: 700; color: white; outline: none; width: 100%; }
+        .editable-pass-input:focus { background: rgba(255,255,255,0.05); border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -52,20 +56,22 @@
             
             <div id="view-arena" class="tab-view active-tab space-y-6">
                 
-                <div class="glass-card p-5 rounded-[2rem] border border-yellow-400/20 shadow-xl relative overflow-hidden">
-                    <div class="flex justify-between items-center relative z-10">
-                        <div>
-                            <p class="text-[10px] font-bold text-yellow-400 uppercase tracking-widest mb-1">📍 Location</p>
-                            <h2 class="text-lg font-bold">Constantia Hub</h2>
+                <div class="max-w-md mx-auto w-full">
+                    <div class="glass-card p-5 rounded-[2rem] border border-yellow-400/20 shadow-xl relative overflow-hidden">
+                        <div class="flex justify-between items-center relative z-10">
+                            <div class="w-1/2">
+                                <p class="text-[10px] font-bold text-yellow-400 uppercase tracking-widest mb-1">📍 Location</p>
+                                <input id="locInput" type="text" value="Constantia Hub" class="editable-pass-input text-lg">
+                            </div>
+                            <div class="text-right border-l border-white/10 pl-6 w-1/2">
+                                <p class="text-[10px] font-bold text-yellow-400 uppercase tracking-widest mb-1">⏰ Start Time</p>
+                                <input id="timeInput" type="text" value="09:00 AM" class="editable-pass-input text-lg text-right">
+                            </div>
                         </div>
-                        <div class="text-right border-l border-white/10 pl-6">
-                            <p class="text-[10px] font-bold text-yellow-400 uppercase tracking-widest mb-1">⏰ Start Time</p>
-                            <h2 class="text-lg font-bold text-white">09:00 AM</h2>
-                        </div>
+                        <button onclick="handleCheckIn()" id="checkInBtn" class="w-full mt-4 bg-green-500/20 border border-green-500/50 text-green-400 font-black py-3 rounded-xl uppercase italic text-sm transition-all active:scale-95">
+                            Confirm Arrival 🎾
+                        </button>
                     </div>
-                    <button onclick="handleCheckIn()" id="checkInBtn" class="w-full mt-4 bg-green-500/20 border border-green-500/50 text-green-400 font-black py-3 rounded-xl uppercase italic text-sm transition-all active:scale-95">
-                        Confirm Arrival 🎾
-                    </button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -96,16 +102,12 @@
                         </div>
 
                         <button id="generateBtn" class="w-full bg-yellow-400 text-blue-900 font-black py-3 rounded-xl uppercase shadow-lg hover:scale-105 transition-transform">Generate Round</button>
-                        
-                        <div id="shareSection" class="hidden mt-6 pt-6 border-t border-gray-800">
-                            <button id="copyLinkBtn" class="w-full text-blue-400 text-[10px] font-bold py-2 border border-blue-400/30 rounded-lg uppercase">🔗 Copy Join Link</button>
-                        </div>
                     </div>
 
                     <div class="md:col-span-2 space-y-6">
                         <div id="matchesSection" class="hidden">
                             <div class="flex justify-between items-center mb-4 bg-black/30 p-2 rounded-xl border border-white/5">
-                                <h2 id="roundDisplay" class="text-xl font-black italic uppercase ml-2">Round 1</h2>
+                                <h2 id="roundDisplay" class="text-xl font-black italic uppercase ml-2 text-yellow-400">Round 1</h2>
                                 <button id="nextBtn" class="bg-green-500 px-4 py-1 rounded-full font-bold text-xs uppercase shadow-lg">Next Round</button>
                             </div>
                             <div id="matchesContainer" class="grid grid-cols-1 gap-3"></div>
@@ -130,7 +132,7 @@
                     <img src="59464.jpg" alt="Racky" class="w-32 h-32 mx-auto rounded-full border-4 border-yellow-400 bg-white object-cover shadow-[0_0_30px_rgba(250,204,21,0.3)]">
                 </div>
                 <div class="bg-black/30 px-6 py-4 rounded-3xl mx-4 border border-white/5">
-                    <p id="mascotText" class="text-yellow-200 text-lg font-bold italic">"Name your meet to start syncing!"</p>
+                    <p id="mascotText" class="text-yellow-200 text-lg font-bold italic">"Ready to sync the squad, Coach!"</p>
                 </div>
             </div>
 
@@ -178,12 +180,13 @@
         let activeMeetId = new URLSearchParams(window.location.search).get('meet');
 
         function rackySay(msg) { document.getElementById('mascotText').textContent = `"${msg}"`; }
+        
         function handleCheckIn() {
             const btn = document.getElementById('checkInBtn');
             btn.innerText = "PLAYER ON-SITE ✅";
             btn.classList.replace('bg-green-500/20', 'bg-slate-700');
             btn.classList.replace('text-green-400', 'text-white');
-            rackySay("Ready for action! Let's get these matches going.");
+            rackySay("Ready for action! Let's get moving.");
         }
 
         // TAB NAVIGATION
@@ -197,21 +200,23 @@
             if(tabId === 'tourney') title.innerHTML = 'PRO <span class="text-purple-400">TOURNEY</span>';
         }
 
-        // --- CLOUD LOGIC ---
+        // CLOUD LOGIC (Players + Location + Time)
         function connectToMeet(id) {
             if (!id) return;
             activeMeetId = id.replace(/\s+/g, '-').toLowerCase();
             db.ref('meets/' + activeMeetId).on('value', (snapshot) => {
                 const data = snapshot.val();
-                if (data && data.players) {
-                    document.getElementById('playersInput').value = data.players;
-                    players = data.players.split('\n').filter(p => p.trim());
+                if (data) {
+                    if (data.players) document.getElementById('playersInput').value = data.players;
+                    if (data.location) document.getElementById('locInput').value = data.location;
+                    if (data.time) document.getElementById('timeInput').value = data.time;
+                    
+                    players = data.players ? data.players.split('\n').filter(p => p.trim()) : [];
                     rackySay("Synced with " + activeMeetId + "! ☁️");
                 }
             });
             document.getElementById('meetStatus').textContent = "Connected: " + activeMeetId;
             document.getElementById('meetStatus').className = "text-[9px] text-green-400 font-bold italic uppercase";
-            document.getElementById('shareSection').classList.remove('hidden');
         }
 
         if (activeMeetId) {
@@ -221,25 +226,27 @@
 
         document.getElementById('connectMeetBtn').onclick = () => {
             const name = document.getElementById('meetNameInput').value;
-            if (!name) return alert("Enter a meet name first!");
+            if (!name) return alert("Enter a meet name!");
             connectToMeet(name);
         };
 
         document.getElementById('savePlayersBtn').onclick = function() {
             if (!activeMeetId) return alert("Connect to a Meet Name first!");
             const list = document.getElementById('playersInput').value;
-            db.ref('meets/' + activeMeetId).update({ players: list }).then(() => {
-                rackySay("Squad saved to the cloud! 🔒");
+            const loc = document.getElementById('locInput').value;
+            const time = document.getElementById('timeInput').value;
+
+            db.ref('meets/' + activeMeetId).update({ 
+                players: list,
+                location: loc,
+                time: time
+            }).then(() => {
+                rackySay("Match details synced to Cloud! 🔒");
+                alert("Cloud Sync Successful!");
             });
         };
 
-        document.getElementById('copyLinkBtn').onclick = () => {
-            const url = window.location.href.split('?')[0] + "?meet=" + activeMeetId;
-            navigator.clipboard.writeText(url);
-            alert("Join Link Copied!");
-        };
-
-        // --- MATCH GENERATION ---
+        // MATCH ENGINE
         document.getElementById('generateBtn').onclick = () => {
             const raw = document.getElementById('playersInput').value.split('\n').filter(p => p.trim());
             if (raw.length < 4) return alert("Add 4+ players!");
