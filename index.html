@@ -5,14 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PadelPilot Pro</title>
     
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&display=swap');
-        body { font-family: 'Space Grotesk', sans-serif; background: #020617; color: white; margin: 0; padding: 0; }
+        body { font-family: 'Space Grotesk', sans-serif; background: #020617; color: white; margin: 0; padding-bottom: 100px; }
         
         /* THE NEON APP AESTHETIC */
         .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
@@ -20,25 +17,24 @@
         .tab-view { display: none; }
         .tab-active { display: block; animation: fadeIn 0.3s ease; }
         
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* TAB BAR */
+        /* NAV DOCK */
         .nav-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 450px; z-index: 100; }
-        .nav-btn { display: flex; flex-direction: column; align-items: center; transition: all 0.2s; opacity: 0.5; }
+        .nav-btn { display: flex; flex-direction: column; align-items: center; transition: all 0.2s; opacity: 0.4; }
         .nav-btn.active { opacity: 1; transform: translateY(-5px); }
 
-        /* BANNERS */
-        #mainBanner { height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-size: cover; background-position: center; transition: background 0.5s ease; }
+        input::placeholder { color: rgba(255,255,255,0.3); }
     </style>
 </head>
 <body>
 
-    <div id="mainBanner" class="bg-slate-900 border-b border-white/10">
-        <h1 id="bannerTitle" class="text-4xl font-black italic tracking-tighter italic">THE ARENA</h1>
-        <p id="bannerSubtitle" class="text-[10px] uppercase tracking-widest font-bold opacity-70">Live Session Control</p>
+    <div id="mainBanner" class="h-40 flex flex-col items-center justify-center border-b border-white/10 bg-slate-900 transition-colors duration-500">
+        <h1 id="bannerTitle" class="text-4xl font-black italic tracking-tighter text-yellow-400">THE ARENA</h1>
+        <p id="bannerSubtitle" class="text-[10px] uppercase tracking-[0.3em] font-bold opacity-60">Live Match Control</p>
     </div>
 
-    <div class="p-4 pb-32 max-w-2xl mx-auto">
+    <div class="p-4 max-w-2xl mx-auto">
         
         <div id="tab-arena" class="tab-view tab-active space-y-6">
             
@@ -58,40 +54,47 @@
                 </button>
             </div>
 
-            <div class="glass-card p-4 rounded-2xl">
-                <input type="text" id="playerName" placeholder="Enter Player Name..." class="w-full bg-slate-800 p-3 rounded-xl border border-white/10 mb-2 focus:outline-none focus:border-yellow-400">
-                <button onclick="addPlayer()" class="w-full bg-yellow-400 text-black font-black py-2 rounded-xl uppercase text-sm">Add to Session</button>
+            <div class="glass-card p-4 rounded-2xl flex gap-2">
+                <input type="text" id="playerName" placeholder="Player Name..." class="flex-1 bg-slate-800 p-3 rounded-xl border border-white/10 focus:border-yellow-400 outline-none">
+                <button onclick="addPlayer()" class="bg-yellow-400 text-black font-black px-6 rounded-xl uppercase text-sm">Add</button>
             </div>
 
             <div id="leaderboard" class="space-y-2">
+                <h3 class="text-[10px] font-bold opacity-50 uppercase tracking-widest ml-2">Leaderboard</h3>
                 </div>
 
-            <button onclick="generateRounds()" class="w-full bg-blue-600 font-black py-4 rounded-2xl uppercase italic shadow-blue-900/50 shadow-lg">Generate Next Round 🚀</button>
+            <div class="flex gap-2">
+                <button onclick="generateRounds()" class="flex-1 bg-blue-600 font-black py-4 rounded-2xl uppercase italic shadow-lg">Next Round 🚀</button>
+                <button onclick="resetApp()" class="px-4 bg-slate-800 rounded-2xl border border-white/10 text-xs uppercase opacity-50">Reset</button>
+            </div>
             
             <div id="matchDisplay" class="space-y-3">
                 </div>
         </div>
 
         <div id="tab-lab" class="tab-view text-center pt-20">
-            <span class="text-5xl">🔒</span>
+            <span class="text-5xl opacity-20">🔒</span>
             <h2 class="text-2xl font-bold mt-4">Trainer Lab</h2>
-            <p class="text-sm opacity-60 mb-6">Revenue tracking & student notes are private.</p>
-            <button onclick="loginPrompt()" class="bg-cyan-500 px-10 py-3 rounded-full font-black italic">LOGIN</button>
+            <p class="text-sm opacity-50 mb-8 max-w-[200px] mx-auto">Access revenue, private notes, and your schedule.</p>
+            <button onclick="alert('Login System Coming Next!')" class="bg-cyan-500 px-10 py-3 rounded-full font-black italic shadow-lg shadow-cyan-900/50">LOG IN</button>
         </div>
 
         <div id="tab-tourney" class="tab-view text-center pt-20">
-            <span class="text-5xl">🏆</span>
-            <h2 class="text-2xl font-bold mt-4">Pro Tournaments</h2>
-            <p class="text-sm opacity-60 mb-6">Bracket management coming soon.</p>
+            <span class="text-5xl opacity-20">🏆</span>
+            <h2 class="text-2xl font-bold mt-4">Tournament Mode</h2>
+            <p class="text-sm opacity-50">Locked until Trainer Lab is active.</p>
         </div>
 
         <div id="tab-racky" class="tab-view space-y-4">
-            <div class="glass-card p-6 rounded-3xl text-center">
-                <img src="racky-avatar.png" class="w-32 mx-auto animate-bounce">
-                <h2 class="text-2xl font-bold">Ask Racky</h2>
-                <p class="text-sm opacity-70">Rules, Tips, and Badges!</p>
+            <div class="glass-card p-8 rounded-[3rem] text-center border-green-500/30">
+                <div class="text-6xl mb-4 animate-bounce">🤖</div>
+                <h2 class="text-2xl font-bold text-green-400">Ask Racky</h2>
+                <p class="text-sm opacity-70">"I'm scanning the padel rulebook..."</p>
             </div>
-            <input type="text" placeholder="Search rules (e.g. 'net', 'fence')..." class="w-full bg-slate-800 p-4 rounded-2xl border border-white/10">
+            <div class="p-4 glass-card rounded-2xl">
+                <p class="text-xs font-bold text-green-400 uppercase mb-2">Rule Quick Search</p>
+                <input type="text" placeholder="Fence? Net? Serve?" class="w-full bg-slate-800 p-4 rounded-xl border border-white/5">
+            </div>
         </div>
 
     </div>
@@ -116,38 +119,106 @@
     </div>
 
     <script>
-        // NAVIGATION LOGIC
-        function setActiveTab(tabId) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-view').forEach(view => view.classList.remove('tab-active'));
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+        // --- CORE DATA ENGINE ---
+        let players = [];
+        let matches = [];
+
+        // --- ARENA FUNCTIONS ---
+        function addPlayer() {
+            const nameInput = document.getElementById('playerName');
+            const name = nameInput.value.trim();
+            if (name) {
+                players.push({ name: name, points: 0, matchesPlayed: 0 });
+                nameInput.value = '';
+                updateUI();
+            }
+        }
+
+        function updateUI() {
+            const lb = document.getElementById('leaderboard');
+            // Keep the header
+            lb.innerHTML = '<h3 class="text-[10px] font-bold opacity-50 uppercase tracking-widest ml-2">Leaderboard</h3>';
             
-            // Show selected tab
+            // Sort by points
+            players.sort((a, b) => b.points - a.points);
+            
+            players.forEach((p, index) => {
+                lb.innerHTML += `
+                    <div class="glass-card p-3 rounded-xl flex justify-between items-center border-l-4 ${index === 0 ? 'border-yellow-400' : 'border-transparent'}">
+                        <span class="font-bold">${p.name}</span>
+                        <span class="bg-slate-800 px-3 py-1 rounded-lg text-yellow-400 font-bold">${p.points} XP</span>
+                    </div>
+                `;
+            });
+        }
+
+        function generateRounds() {
+            if (players.length < 4) return alert("Need 4 players!");
+            const shuffled = [...players].sort(() => 0.5 - Math.random());
+            const display = document.getElementById('matchDisplay');
+            display.innerHTML = '<h3 class="text-[10px] font-bold opacity-50 uppercase tracking-widest ml-2">Current Matches</h3>';
+            
+            for (let i = 0; i < Math.floor(shuffled.length / 4); i++) {
+                const team1 = [shuffled[i*4], shuffled[i*4+1]];
+                const team2 = [shuffled[i*4+2], shuffled[i*4+3]];
+                
+                display.innerHTML += `
+                    <div class="glass-card p-4 rounded-2xl space-y-3">
+                        <div class="flex justify-between items-center">
+                            <div class="text-center w-5/12">
+                                <p class="text-sm font-bold">${team1[0].name} & ${team1[1].name}</p>
+                                <button onclick="addPoint('${team1[0].name}', '${team1[1].name}')" class="mt-2 bg-yellow-400 text-black text-[10px] font-black px-4 py-1 rounded-full uppercase">Win</button>
+                            </div>
+                            <div class="text-xs opacity-30 font-bold italic">VS</div>
+                            <div class="text-center w-5/12">
+                                <p class="text-sm font-bold">${team2[0].name} & ${team2[1].name}</p>
+                                <button onclick="addPoint('${team2[0].name}', '${team2[1].name}')" class="mt-2 bg-yellow-400 text-black text-[10px] font-black px-4 py-1 rounded-full uppercase">Win</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function addPoint(p1, p2) {
+            players.forEach(p => {
+                if (p.name === p1 || p.name === p2) p.points += 10;
+            });
+            updateUI();
+        }
+
+        function resetApp() {
+            if(confirm("Clear all players?")) {
+                players = [];
+                document.getElementById('matchDisplay').innerHTML = '';
+                updateUI();
+            }
+        }
+
+        // --- NAVIGATION & UI LOGIC ---
+        function setActiveTab(tabId) {
+            document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('tab-active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
             document.getElementById('tab-' + tabId).classList.add('tab-active');
             document.getElementById('btn-' + tabId).classList.add('active');
             
-            // Update Banner
             const title = document.getElementById('bannerTitle');
             const banners = {
-                'arena': { title: 'THE ARENA', color: '#e1ff00' },
-                'lab': { title: 'TRAINER LAB', color: '#22d3ee' },
-                'tourney': { title: 'PRO TOURNAMENT', color: '#a855f7' },
-                'racky': { title: 'ASK RACKY', color: '#4ade80' }
+                'arena': { name: 'THE ARENA', color: '#e1ff00' },
+                'lab': { name: 'TRAINER LAB', color: '#22d3ee' },
+                'tourney': { name: 'PRO TOURNEY', color: '#a855f7' },
+                'racky': { name: 'ASK RACKY', color: '#4ade80' }
             };
-            title.innerText = banners[tabId].title;
+            title.innerText = banners[tabId].name;
             title.style.color = banners[tabId].color;
         }
 
-        // CHECK-IN LOGIC
         function handleCheckIn() {
             const btn = document.getElementById('checkInBtn');
             btn.innerText = "CHECKED IN! ✅";
             btn.classList.replace('bg-green-500', 'bg-slate-700');
-            // Logic to send Check-in to Firebase goes here
         }
-
-        // --- ALL YOUR ORIGINAL PLAYER & ROUND LOGIC GOES BELOW ---
-        // (addPlayer, generateRounds, updateScore, etc.)
     </script>
 </body>
 </html>
