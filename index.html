@@ -35,7 +35,6 @@
 
         .nav-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 450px; z-index: 100; }
         
-        /* Clean Input Styling for Match Pass */
         .editable-pass-input { background: transparent; border: none; font-weight: 700; color: white; outline: none; width: 100%; }
         .editable-pass-input:focus { background: rgba(255,255,255,0.05); border-radius: 4px; }
     </style>
@@ -58,7 +57,7 @@
                 
                 <div class="max-w-md mx-auto w-full">
                     <div class="glass-card p-5 rounded-[2rem] border border-yellow-400/20 shadow-xl relative overflow-hidden">
-                        <div class="flex justify-between items-center relative z-10">
+                        <div class="flex justify-between items-center relative z-10 mb-4">
                             <div class="w-1/2">
                                 <p class="text-[10px] font-bold text-yellow-400 uppercase tracking-widest mb-1">📍 Location</p>
                                 <input id="locInput" type="text" value="Constantia Hub" class="editable-pass-input text-lg">
@@ -68,9 +67,15 @@
                                 <input id="timeInput" type="text" value="09:00 AM" class="editable-pass-input text-lg text-right">
                             </div>
                         </div>
-                        <button onclick="handleCheckIn()" id="checkInBtn" class="w-full mt-4 bg-green-500/20 border border-green-500/50 text-green-400 font-black py-3 rounded-xl uppercase italic text-sm transition-all active:scale-95">
-                            Confirm Arrival 🎾
-                        </button>
+                        
+                        <div class="flex gap-2">
+                            <button onclick="handleCheckIn()" id="checkInBtn" class="flex-1 bg-green-500/20 border border-green-500/50 text-green-400 font-black py-3 rounded-xl uppercase italic text-xs transition-all active:scale-95">
+                                Confirm Arrival ✅
+                            </button>
+                            <button onclick="copyMatchLink()" class="px-5 bg-blue-500/20 border border-blue-500/50 text-blue-400 py-3 rounded-xl transition-all active:scale-95">
+                                <span class="text-lg">🔗</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -163,7 +168,6 @@
     </div>
 
     <script>
-        // FIREBASE SETUP
         const firebaseConfig = {
             apiKey: "AiZaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
             authDomain: "padelpilot-4531f.firebaseapp.com",
@@ -189,7 +193,18 @@
             rackySay("Ready for action! Let's get moving.");
         }
 
-        // TAB NAVIGATION
+        function copyMatchLink() {
+            if (!activeMeetId) {
+                alert("Connect to a Meet Name first!");
+                return;
+            }
+            const url = window.location.href.split('?')[0] + "?meet=" + activeMeetId;
+            navigator.clipboard.writeText(url).then(() => {
+                rackySay("Join link copied! Send it to the squad. 📲");
+                alert("Link Copied!");
+            });
+        }
+
         function switchTab(tabId) {
             document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active-tab'));
             document.getElementById('view-' + tabId).classList.add('active-tab');
@@ -200,7 +215,6 @@
             if(tabId === 'tourney') title.innerHTML = 'PRO <span class="text-purple-400">TOURNEY</span>';
         }
 
-        // CLOUD LOGIC (Players + Location + Time)
         function connectToMeet(id) {
             if (!id) return;
             activeMeetId = id.replace(/\s+/g, '-').toLowerCase();
@@ -210,7 +224,6 @@
                     if (data.players) document.getElementById('playersInput').value = data.players;
                     if (data.location) document.getElementById('locInput').value = data.location;
                     if (data.time) document.getElementById('timeInput').value = data.time;
-                    
                     players = data.players ? data.players.split('\n').filter(p => p.trim()) : [];
                     rackySay("Synced with " + activeMeetId + "! ☁️");
                 }
@@ -235,7 +248,6 @@
             const list = document.getElementById('playersInput').value;
             const loc = document.getElementById('locInput').value;
             const time = document.getElementById('timeInput').value;
-
             db.ref('meets/' + activeMeetId).update({ 
                 players: list,
                 location: loc,
@@ -246,7 +258,6 @@
             });
         };
 
-        // MATCH ENGINE
         document.getElementById('generateBtn').onclick = () => {
             const raw = document.getElementById('playersInput').value.split('\n').filter(p => p.trim());
             if (raw.length < 4) return alert("Add 4+ players!");
