@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PadelPilot Stable</title>
+    <title>PadelPilot Stable | Core</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -52,19 +52,17 @@
         </div>
 
         <div class="p-4 max-w-4xl mx-auto">
-            
             <div id="view-arena" class="tab-view active-tab space-y-6">
-                
                 <div class="max-w-md mx-auto w-full">
                     <div class="glass-card p-5 rounded-[2rem] border border-yellow-400/20 shadow-xl relative overflow-hidden">
                         <div class="flex justify-between items-center relative z-10 mb-4">
                             <div class="w-1/2">
                                 <p class="text-[10px] font-bold text-yellow-400 uppercase tracking-widest mb-1">📍 Location</p>
-                                <input id="locInput" type="text" value="Constantia Hub" class="editable-pass-input text-lg">
+                                <input id="locInput" type="text" value="Constantia Hub" onchange="syncMeta()" class="editable-pass-input text-lg">
                             </div>
                             <div class="text-right border-l border-white/10 pl-6 w-1/2">
                                 <p class="text-[10px] font-bold text-yellow-400 uppercase tracking-widest mb-1">⏰ Start Time</p>
-                                <input id="timeInput" type="text" value="09:00 AM" class="editable-pass-input text-lg text-right">
+                                <input id="timeInput" type="text" value="09:00 AM" onchange="syncMeta()" class="editable-pass-input text-lg text-right">
                             </div>
                         </div>
                         
@@ -82,31 +80,25 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-gray-900/80 p-6 rounded-3xl border border-gray-700 shadow-xl">
                         <h3 class="text-xs font-bold uppercase text-blue-400 mb-4 tracking-widest text-center">Meet Setup</h3>
-                        
                         <div class="mb-4 text-center">
                             <div class="bg-black/30 px-3 py-1 rounded-lg inline-block border border-white/10">
                                 <p id="meetStatus" class="text-[9px] text-gray-500 italic">Cloud disconnected.</p>
                             </div>
                         </div>
-
                         <div class="flex gap-2 mb-4">
                             <input id="meetNameInput" type="text" class="flex-1 bg-black/50 border border-gray-700 p-2 rounded-lg text-white text-sm outline-none" placeholder="Meet Name">
                             <button id="connectMeetBtn" class="bg-blue-600 px-3 rounded-lg text-[10px] font-bold uppercase">Connect</button>
                         </div>
-
                         <textarea id="playersInput" class="w-full bg-black/50 border border-gray-700 p-3 rounded-xl h-40 outline-none text-white text-sm mb-4" placeholder="Enter players..."></textarea>
-                        
                         <button id="savePlayersBtn" class="w-full bg-green-600/80 text-white font-bold py-2 rounded-xl text-[10px] uppercase border border-green-400/50 mb-4">💾 Sync to Cloud</button>
-
                         <div class="grid grid-cols-2 gap-3 mb-6">
                             <input id="courtsInput" type="number" value="1" min="1" class="bg-black/50 p-2 rounded-lg border border-gray-700 text-white text-xs text-center">
                             <select id="modeSelect" class="bg-black/50 p-2 rounded-lg border border-gray-700 text-[10px] text-white">
-                                <option value="classic">Classic</option>
-                                <option value="americano">Americano</option>
+                                <option value="classic">Classic (Win=3pts)</option>
+                                <option value="americano">Americano (Total Score)</option>
                             </select>
                         </div>
-
-                        <button id="generateBtn" class="w-full bg-yellow-400 text-blue-900 font-black py-3 rounded-xl uppercase shadow-lg hover:scale-105 transition-transform">Generate Round</button>
+                        <button id="generateBtn" class="w-full bg-yellow-400 text-blue-900 font-black py-3 rounded-xl uppercase shadow-lg hover:scale-105 transition-transform">Start Session</button>
                     </div>
 
                     <div class="md:col-span-2 space-y-6">
@@ -140,10 +132,8 @@
                     <p id="mascotText" class="text-yellow-200 text-lg font-bold italic">"Ready to sync the squad, Coach!"</p>
                 </div>
             </div>
-
             <div id="view-lab" class="tab-view text-center pt-20 italic opacity-40">Lab functionality is in the Sandbox.</div>
             <div id="view-tourney" class="tab-view text-center pt-20 italic opacity-40">Tourney features coming soon.</div>
-
         </div>
 
         <div class="nav-dock glass-card p-2 rounded-[2.5rem] flex justify-around items-center border border-white/10 shadow-2xl">
@@ -164,7 +154,6 @@
                 <span class="text-[9px] font-bold uppercase mt-1 text-green-400">Hub</span>
             </button>
         </div>
-
     </div>
 
     <script>
@@ -180,7 +169,9 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let players = []; let matches = []; let currentRound = 1;
+        let players = []; 
+        let matches = []; 
+        let currentRound = 1;
         let activeMeetId = new URLSearchParams(window.location.search).get('meet');
 
         function rackySay(msg) { document.getElementById('mascotText').textContent = `"${msg}"`; }
@@ -194,10 +185,7 @@
         }
 
         function copyMatchLink() {
-            if (!activeMeetId) {
-                alert("Connect to a Meet Name first!");
-                return;
-            }
+            if (!activeMeetId) return alert("Connect to a Meet Name first!");
             const url = window.location.href.split('?')[0] + "?meet=" + activeMeetId;
             navigator.clipboard.writeText(url).then(() => {
                 rackySay("Join link copied! Send it to the squad. 📲");
@@ -215,17 +203,41 @@
             if(tabId === 'tourney') title.innerHTML = 'PRO <span class="text-purple-400">TOURNEY</span>';
         }
 
+        // --- FIXED: Metadata Syncing ---
+        function syncMeta() {
+            if (!activeMeetId) return;
+            const loc = document.getElementById('locInput').value;
+            const time = document.getElementById('timeInput').value;
+            db.ref('meets/' + activeMeetId).update({ 
+                location: loc,
+                time: time
+            });
+        }
+
         function connectToMeet(id) {
             if (!id) return;
             activeMeetId = id.replace(/\s+/g, '-').toLowerCase();
+            
+            // Cleanup previous listeners if any
+            db.ref('meets/' + activeMeetId).off();
+
             db.ref('meets/' + activeMeetId).on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
-                    if (data.players) document.getElementById('playersInput').value = data.players;
+                    // Update UI inputs from Cloud
                     if (data.location) document.getElementById('locInput').value = data.location;
                     if (data.time) document.getElementById('timeInput').value = data.time;
+                    if (data.players) document.getElementById('playersInput').value = data.players;
+                    
+                    // Update Local State
+                    matches = data.matches || [];
+                    currentRound = data.currentRound || 1;
                     players = data.players ? data.players.split('\n').filter(p => p.trim()) : [];
-                    rackySay("Synced with " + activeMeetId + "! ☁️");
+                    
+                    if(matches.length > 0) {
+                        render();
+                        updateBoard();
+                    }
                 }
             });
             document.getElementById('meetStatus').textContent = "Connected: " + activeMeetId;
@@ -251,71 +263,98 @@
             db.ref('meets/' + activeMeetId).update({ 
                 players: list,
                 location: loc,
-                time: time
+                time: time,
+                matches: matches,
+                currentRound: currentRound
             }).then(() => {
                 rackySay("Match details synced to Cloud! 🔒");
-                alert("Cloud Sync Successful!");
             });
         };
 
         document.getElementById('generateBtn').onclick = () => {
             const raw = document.getElementById('playersInput').value.split('\n').filter(p => p.trim());
             if (raw.length < 4) return alert("Add 4+ players!");
-            players = raw; matches = []; currentRound = 1;
+            players = raw; 
+            matches = []; 
+            currentRound = 1;
             startRound();
         };
 
-        document.getElementById('nextBtn').onclick = () => { currentRound++; startRound(); };
+        document.getElementById('nextBtn').onclick = () => { 
+            currentRound++; 
+            startRound(); 
+        };
 
         function startRound() {
             const courts = parseInt(document.getElementById('courtsInput').value) || 1;
             const shuffled = [...players].sort(() => 0.5 - Math.random());
             const newMatches = [];
             for (let i = 0; i < courts * 4 && i + 3 < shuffled.length; i += 4) {
-                newMatches.push({ id: Date.now() + i, court: (i/4) + 1, p: [shuffled[i], shuffled[i+1], shuffled[i+2], shuffled[i+3]], sA: '', sB: '' });
+                newMatches.push({ 
+                    id: Date.now() + i, 
+                    round: currentRound,
+                    court: (i/4) + 1, 
+                    p: [shuffled[i], shuffled[i+1], shuffled[i+2], shuffled[i+3]], 
+                    sA: '', 
+                    sB: '' 
+                });
             }
             const resting = shuffled.slice(newMatches.length * 4);
             document.getElementById('restingContainer').textContent = resting.length ? `Resting: ${resting.join(', ')}` : 'Full court engagement!';
-            document.getElementById('roundDisplay').textContent = `Round ${currentRound}`;
+            
             matches = [...matches, ...newMatches];
-            render(); updateBoard();
+            render(); 
+            updateBoard();
+            
+            // Auto-sync everything to cloud
+            if(activeMeetId) document.getElementById('savePlayersBtn').click(); 
             rackySay("Round " + currentRound + " is live!");
         }
 
         function render() {
             const container = document.getElementById('matchesContainer');
             container.innerHTML = '';
-            const count = parseInt(document.getElementById('courtsInput').value) || 1;
-            matches.slice(-count).forEach(m => {
+            const currentMatches = matches.filter(m => m.round === currentRound);
+            
+            currentMatches.forEach(m => {
                 const div = document.createElement('div');
                 div.className = 'bg-black/60 p-4 rounded-2xl flex justify-between items-center border border-white/10 shadow-lg';
                 div.innerHTML = `
                     <div class="text-[10px] font-bold w-1/3 text-yellow-400 uppercase leading-tight">Court ${m.court}<br>${m.p[0]} & ${m.p[1]}</div>
                     <div class="flex gap-2">
-                        <input type="number" oninput="upd(${m.id},'A',this.value)" class="w-10 bg-gray-900 rounded p-1 text-center font-bold text-white border border-white/10 outline-none focus:border-yellow-400">
-                        <input type="number" oninput="upd(${m.id},'B',this.value)" class="w-10 bg-gray-900 rounded p-1 text-center font-bold text-white border border-white/10 outline-none focus:border-blue-400">
+                        <input type="number" value="${m.sA}" oninput="upd(${m.id},'A',this.value)" class="w-10 bg-gray-900 rounded p-1 text-center font-bold text-white border border-white/10 outline-none focus:border-yellow-400">
+                        <input type="number" value="${m.sB}" oninput="upd(${m.id},'B',this.value)" class="w-10 bg-gray-900 rounded p-1 text-center font-bold text-white border border-white/10 outline-none focus:border-blue-400">
                     </div>
                     <div class="text-[10px] font-bold w-1/3 text-right text-blue-400 uppercase leading-tight">Court ${m.court}<br>${m.p[2]} & ${m.p[3]}</div>
                 `;
                 container.appendChild(div);
             });
             document.getElementById('matchesSection').classList.remove('hidden');
+            document.getElementById('roundDisplay').textContent = `Round ${currentRound}`;
         }
 
         function upd(id, team, val) {
             const m = matches.find(x => x.id === id);
             if (team === 'A') m.sA = val; else m.sB = val;
             updateBoard();
+            if(activeMeetId) {
+                db.ref('meets/' + activeMeetId).update({ matches: matches });
+            }
         }
 
         function updateBoard() {
-            let l = {}; players.forEach(p => l[p] = { pts: 0, diff: 0 });
+            let l = {}; 
+            players.forEach(p => l[p] = { pts: 0, diff: 0 });
             const mode = document.getElementById('modeSelect').value;
+            
             matches.forEach(m => {
-                const a = parseInt(m.sA) || 0; const b = parseInt(m.sB) || 0;
-                if (m.sA === '' || m.sB === '') return;
+                const a = parseInt(m.sA); 
+                const b = parseInt(m.sB);
+                if (isNaN(a) || isNaN(b)) return;
+                
                 m.p.slice(0,2).forEach(p => l[p].diff += (a - b));
                 m.p.slice(2,4).forEach(p => l[p].diff += (b - a));
+                
                 if (mode === 'classic') {
                     if (a > b) m.p.slice(0,2).forEach(p => l[p].pts += 3);
                     else if (b > a) m.p.slice(2,4).forEach(p => l[p].pts += 3);
@@ -325,6 +364,7 @@
                     m.p.slice(2,4).forEach(p => l[p].pts += b);
                 }
             });
+            
             const sorted = Object.entries(l).sort((a,b) => b[1].pts - a[1].pts || b[1].diff - a[1].diff);
             document.getElementById('leaderboardBody').innerHTML = sorted.map(([n, d], i) => `
                 <tr class="border-b border-white/5 hover:bg-white/5 transition">
