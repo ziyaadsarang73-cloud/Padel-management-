@@ -3,41 +3,296 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PadelPilot Arena</title>
-<link rel="stylesheet" href="styles.css">
+<title>PadelPilot Stable</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&display=swap');
+
+body { background-color: #ffffff; color: #0f172a; margin: 0; font-family: 'Space Grotesk', sans-serif; padding-bottom: 100px; }
+
+.master-bg { background: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.95)), url('59431.jpg'); background-size: cover; background-position: center; min-height: 100vh; }
+
+.vibrant-banner {
+  background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+  position: relative;
+}
+@keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+.banner-text { font-weight: 900; font-size: 2.5rem; color: white; display: inline-block; position: relative; }
+.banner-text::after {
+  content: '';
+  position: absolute;
+  height: 5px;
+  width: 100%;
+  background: #39ff14; /* neon green */
+  bottom: -5px;
+  left: 0;
+}
+
+.glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+.racky-bounce { animation: bounce 3s infinite ease-in-out; }
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+.tab-view { display: none; }
+.active-tab { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.nav-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; max-width: 450px; z-index: 100; }
+
+.editable-pass-input { background: transparent; border: none; font-weight: 700; color: #0f172a; outline: none; width: 100%; }
+.editable-pass-input:focus { background: rgba(0,0,0,0.05); border-radius: 4px; }
+</style>
 </head>
 <body>
 
-<div class="banner">
-  PADELPILOT
+<div class="master-bg">
+
+  <div class="vibrant-banner p-4 rounded-b-[3rem] shadow-2xl mb-6 text-center">
+    <span class="banner-text">PADELPILOT</span>
+    <p class="text-[10px] uppercase tracking-[0.3em] font-bold opacity-60 mt-2">Live Session Control</p>
+  </div>
+
+  <div class="p-4 max-w-4xl mx-auto">
+
+    <div id="view-arena" class="tab-view active-tab space-y-6">
+      <!-- Arena card -->
+      <div class="max-w-md mx-auto w-full">
+        <div class="glass-card p-5 rounded-[2rem] border border-blue-400/20 shadow-xl relative overflow-hidden">
+          <div class="flex justify-between items-center relative z-10 mb-4">
+            <div class="w-1/2">
+              <p class="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">📍 Location</p>
+              <input id="locInput" type="text" value="Constantia Hub" class="editable-pass-input text-lg">
+            </div>
+            <div class="text-right border-l border-white/10 pl-6 w-1/2">
+              <p class="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-1">⏰ Start Time</p>
+              <input id="timeInput" type="text" value="09:00 AM" class="editable-pass-input text-lg text-right">
+            </div>
+          </div>
+
+          <div class="flex gap-2">
+            <button onclick="handleCheckIn()" id="checkInBtn" class="flex-1 bg-green-500/20 border border-green-500/50 text-green-400 font-black py-3 rounded-xl uppercase italic text-xs transition-all active:scale-95">
+              Confirm Arrival ✅
+            </button>
+            <button onclick="copyMatchLink()" class="px-5 bg-blue-500/20 border border-blue-500/50 text-blue-400 py-3 rounded-xl transition-all active:scale-95">
+              <span class="text-lg">🔗</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meet setup -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-gray-200 p-6 rounded-3xl border border-gray-300 shadow-xl">
+          <h3 class="text-xs font-bold uppercase text-blue-400 mb-4 tracking-widest text-center">Meet Setup</h3>
+
+          <div class="mb-4 text-center">
+            <div class="bg-black/10 px-3 py-1 rounded-lg inline-block border border-white/10">
+              <p id="meetStatus" class="text-[9px] text-gray-500 italic">Cloud disconnected.</p>
+            </div>
+          </div>
+
+          <div class="flex gap-2 mb-4">
+            <input id="meetNameInput" type="text" class="flex-1 bg-white/50 border border-gray-300 p-2 rounded-lg text-gray-800 text-sm outline-none" placeholder="Meet Name">
+            <button id="connectMeetBtn" class="bg-blue-600 px-3 rounded-lg text-[10px] font-bold uppercase">Connect</button>
+          </div>
+
+          <textarea id="playersInput" class="w-full bg-white/50 border border-gray-300 p-3 rounded-xl h-40 outline-none text-gray-800 text-sm mb-4" placeholder="Enter players..."></textarea>
+
+          <button id="savePlayersBtn" class="w-full bg-green-600/80 text-white font-bold py-2 rounded-xl text-[10px] uppercase border border-green-400/50 mb-4">💾 Sync to Cloud</button>
+
+          <div class="grid grid-cols-2 gap-3 mb-6">
+            <input id="courtsInput" type="number" value="1" min="1" class="bg-white/50 p-2 rounded-lg border border-gray-300 text-gray-800 text-xs text-center">
+            <select id="modeSelect" class="bg-white/50 p-2 rounded-lg border border-gray-300 text-[10px] text-gray-800">
+              <option value="classic">Classic</option>
+              <option value="americano">Americano</option>
+            </select>
+          </div>
+
+          <button id="generateBtn" class="w-full bg-blue-400 text-white font-black py-3 rounded-xl uppercase shadow-lg hover:scale-105 transition-transform">Generate Round</button>
+        </div>
+
+        <!-- Matches & leaderboard -->
+        <div class="md:col-span-2 space-y-6">
+          <div id="matchesSection" class="hidden">
+            <div class="flex justify-between items-center mb-4 bg-white/10 p-2 rounded-xl border border-gray-300">
+              <h2 id="roundDisplay" class="text-xl font-black italic uppercase ml-2 text-blue-400">Round 1</h2>
+              <button id="nextBtn" class="bg-green-500 px-4 py-1 rounded-full font-bold text-xs uppercase shadow-lg">Next Round</button>
+            </div>
+            <div id="matchesContainer" class="grid grid-cols-1 gap-3"></div>
+            <div id="restingContainer" class="mt-4 p-2 bg-blue-400/10 rounded-lg text-blue-800 text-xs text-center font-bold italic border border-blue-400/20"></div>
+          </div>
+
+          <div id="leaderboardSection" class="hidden bg-white/90 rounded-3xl overflow-hidden border border-gray-300 shadow-2xl">
+            <div class="p-4 bg-gray-100 flex justify-between items-center border-b border-gray-300">
+              <span class="font-bold text-[10px] tracking-widest uppercase">🏆 Standings</span>
+              <button onclick="downloadResults()" class="text-[8px] bg-white/10 px-3 py-1 rounded-full font-bold uppercase border border-white/10">Export PNG</button>
+            </div>
+            <table class="w-full text-left text-sm">
+              <tbody id="leaderboardBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Racky hub -->
+    <div id="view-racky" class="tab-view text-center pt-10">
+      <div class="racky-bounce mb-6">
+        <img src="59464.jpg" alt="Racky" class="w-32 h-32 mx-auto rounded-full border-4 border-green-400 bg-white object-cover shadow-[0_0_30px_rgba(57,255,20,0.3)]">
+      </div>
+      <div class="bg-black/10 px-6 py-4 rounded-3xl mx-4 border border-white/5">
+        <p id="mascotText" class="text-green-700 text-lg font-bold italic">"Ready to sync the squad, Coach!"</p>
+      </div>
+    </div>
+
+    <div id="view-lab" class="tab-view text-center pt-20 italic opacity-40">Lab functionality is in the Sandbox.</div>
+    <div id="view-tourney" class="tab-view text-center pt-20 italic opacity-40">Tourney features coming soon.</div>
+
+  </div>
+
+  <!-- Bottom navigation -->
+  <div class="nav-dock glass-card p-2 rounded-[2.5rem] flex justify-around items-center border border-white/10 shadow-2xl">
+    <button onclick="switchTab('arena')" class="flex flex-col items-center p-3">
+      <span class="text-xl">🎾</span>
+      <span class="text-[9px] font-bold uppercase mt-1 text-blue-400">Arena</span>
+    </button>
+    <button onclick="switchTab('lab')" class="flex flex-col items-center p-3 opacity-40">
+      <span class="text-xl">📊</span>
+      <span class="text-[9px] font-bold uppercase mt-1">Lab</span>
+    </button>
+    <button onclick="switchTab('tourney')" class="flex flex-col items-center p-3 opacity-40">
+      <span class="text-xl">🏆</span>
+      <span class="text-[9px] font-bold uppercase mt-1">Tourney</span>
+    </button>
+    <button onclick="switchTab('racky')" class="flex flex-col items-center p-3 opacity-40">
+      <span class="text-xl">🤖</span>
+      <span class="text-[9px] font-bold uppercase mt-1 text-green-400">Hub</span>
+    </button>
+  </div>
+
 </div>
 
-<div class="container">
+<script>
+const firebaseConfig = {
+    apiKey: "AiZaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
+    authDomain: "padelpilot-4531f.firebaseapp.com",
+    databaseURL: "https://padelpilot-4531f-default-rtdb.firebaseio.com/",
+    projectId: "padelpilot-4531f",
+    storageBucket: "padelpilot-4531f.appspot.com",
+    messagingSenderId: "866905934997",
+    appId: "1:866905934997:web:97cb8ebc4ed35f9e41f9c",
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-  <div class="card">
-    <h2>Add Player</h2>
-    <input id="playerName" placeholder="Player Name"/>
-    <button onclick="addPlayer()">Add</button>
-  </div>
+let players = []; let matches = []; let currentRound = 1;
+let activeMeetId = new URLSearchParams(window.location.search).get('meet');
 
-  <div class="card">
-    <h2>Generate Matches</h2>
-    <button onclick="generateMatches()">Create Round</button>
-    <div id="matches"></div>
-  </div>
+function rackySay(msg){ document.getElementById('mascotText').textContent = `"${msg}"`; }
 
-  <div class="card">
-    <h2>Leaderboard</h2>
-    <div id="leaderboard"></div>
-  </div>
+function handleCheckIn(){
+    const btn = document.getElementById('checkInBtn');
+    btn.innerText="PLAYER ON-SITE ✅";
+    btn.classList.replace('bg-green-500/20','bg-slate-700');
+    btn.classList.replace('text-green-400','text-white');
+    rackySay("Ready for action! Let's get moving.");
+}
 
-</div>
+function copyMatchLink(){
+    if(!activeMeetId){ alert("Connect to a Meet Name first!"); return; }
+    const url = window.location.href.split('?')[0]+"?meet="+activeMeetId;
+    navigator.clipboard.writeText(url).then(()=>{ rackySay("Join link copied! Send it to the squad. 📲"); alert("Link Copied!"); });
+}
 
-<script src="firebase.js"></script>
-<script src="auth.js"></script>
-<script src="tournaments.js"></script>
-<script src="invites.js"></script>
-<script src="ui.js"></script>
-<script src="app.js"></script>
-</body>
-</html>
+function switchTab(tabId){
+    document.querySelectorAll('.tab-view').forEach(t=>t.classList.remove('active-tab'));
+    document.getElementById('view-'+tabId).classList.add('active-tab');
+    const title = document.querySelector('.banner-text');
+    if(tabId==='arena') title.textContent='PADELPILOT';
+}
+
+function connectToMeet(id){
+    if(!id) return;
+    activeMeetId = id.replace(/\s+/g,'-').toLowerCase();
+    db.ref('meets/'+activeMeetId).on('value', snapshot => {
+        const data = snapshot.val();
+        if(data){
+            if(data.players) document.getElementById('playersInput').value=data.players;
+            if(data.location) document.getElementById('locInput').value=data.location;
+            if(data.time) document.getElementById('timeInput').value=data.time;
+            players = data.players ? data.players.split('\n').filter(p=>p.trim()) : [];
+            rackySay("Synced with "+activeMeetId+"! ☁️");
+        }
+    });
+    document.getElementById('meetStatus').textContent="Connected: "+activeMeetId;
+    document.getElementById('meetStatus').className="text-[9px] text-green-400 font-bold italic uppercase";
+}
+
+if(activeMeetId){ document.getElementById('meetNameInput').value=activeMeetId; connectToMeet(activeMeetId); }
+
+document.getElementById('connectMeetBtn').onclick=()=>{ 
+    const name = document.getElementById('meetNameInput').value; 
+    if(!name) return alert("Enter a meet name!"); 
+    connectToMeet(name);
+};
+
+// --------------------- 48-HOUR RESET (FRONTEND) ---------------------
+function cleanOldMeets(){
+    const cutoff = Date.now() - 48*60*60*1000;
+    db.ref('meets').once('value', snapshot => {
+        snapshot.forEach(meet=>{
+            if(meet.val().updatedAt && meet.val().updatedAt < cutoff){
+                meet.ref.update({players:'', location:'', time:'', updatedAt:null});
+                console.log("Old meet cleared:", meet.key);
+            }
+        });
+    });
+}
+cleanOldMeets();
+
+// Save players with timestamp
+document.getElementById('savePlayersBtn').onclick=function(){
+    if(!activeMeetId) return alert("Connect to a Meet Name first!");
+    const list=document.getElementById('playersInput').value;
+    const loc=document.getElementById('locInput').value;
+    const time=document.getElementById('timeInput').value;
+    const now=Date.now();
+    db.ref('meets/'+activeMeetId).update({players:list, location:loc, time:time, updatedAt:now})
+    .then(()=>{ rackySay("Match details synced to Cloud! 🔒"); alert("Cloud Sync Successful!"); });
+};
+
+// --------------------- MATCH GENERATION ---------------------
+document.getElementById('generateBtn').onclick=()=>{
+    const raw = document.getElementById('playersInput').value.split('\n').filter(p=>p.trim());
+    if(raw.length<4) return alert("Add 4+ players!");
+    players=raw; matches=[]; currentRound=1;
+    startRound();
+};
+document.getElementById('nextBtn').onclick=()=>{ currentRound++; startRound(); };
+
+function startRound(){
+    const courts = parseInt(document.getElementById('courtsInput').value)||1;
+    const shuffled = [...players].sort(()=>0.5-Math.random());
+    const newMatches=[];
+    for(let i=0;i<courts*4 && i+3<shuffled.length;i+=4){
+        newMatches.push({id:Date.now()+i, court:(i/4)+1, p:[shuffled[i],shuffled[i+1],shuffled[i+2],shuffled[i+3]], sA:'', sB:''});
+    }
+    const resting = shuffled.slice(newMatches.length*4);
+    document.getElementById('restingContainer').textContent = resting.length ? `Resting: ${resting.join(', ')}` : 'Full court engagement!';
+    document.getElementById('roundDisplay').textContent=`Round ${currentRound}`;
+    matches=[...matches,...newMatches];
+    render(); updateBoard();
+    rackySay("Round "+currentRound+" is live!");
+}
+
+function render(){
+    const container = document.getElementById('matchesContainer');
+    container.innerHTML='';
+    const count = parseInt(document
