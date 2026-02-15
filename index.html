@@ -10,21 +10,15 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-body { background:#ffffff; font-family:'Space Grotesk', sans-serif; margin:0; }
+body{background:#ffffff;font-family:'Space Grotesk',sans-serif;margin:0}
 
 .top-tabs{
 background:linear-gradient(90deg,#1e40af,#3b82f6,#facc15);
-padding:14px;
-display:flex;
-justify-content:center;
-gap:40px;
-font-weight:700;
-letter-spacing:.08em;
-text-transform:uppercase;
+padding:14px;display:flex;justify-content:center;gap:40px;
+font-weight:700;letter-spacing:.08em;text-transform:uppercase;
 }
-
-.top-tabs a{color:white;text-decoration:none;font-size:13px;}
-.top-tabs a.active{border-bottom:3px solid white;padding-bottom:4px;}
+.top-tabs a{color:white;text-decoration:none;font-size:13px}
+.top-tabs a.active{border-bottom:3px solid white;padding-bottom:4px}
 
 .padelpilot-banner{
 background:#0f172a;color:white;text-align:center;padding:18px;
@@ -44,13 +38,15 @@ display:flex;justify-content:space-between;align-items:center;
 box-shadow:0 10px 25px rgba(0,0,0,.08);
 }
 
-.team-block{
-width:40%;font-size:22px;font-weight:800;color:#0f172a;
+.team-block{width:38%;font-size:24px;font-weight:800;color:#0f172a}
+
+.score-row{
+display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px
 }
 
-.score-box input{
-width:70px;height:60px;font-size:26px;text-align:center;
-border-radius:14px;border:2px solid #e5e7eb;
+.score-row input{
+width:80px;height:64px;font-size:28px;text-align:center;
+border-radius:14px;border:2px solid #e5e7eb;background:white
 }
 </style>
 </head>
@@ -69,16 +65,18 @@ border-radius:14px;border:2px solid #e5e7eb;
 
 <div class="max-w-5xl mx-auto p-6 space-y-6">
 
-<!-- TOURNAMENT INFO -->
-<div class="bg-gray-100 p-6 rounded-2xl shadow">
+<!-- TOURNAMENT HEADER -->
+<div class="bg-gray-100 p-6 rounded-2xl shadow space-y-4">
 
-<input id="tournamentName" class="w-full text-2xl font-bold mb-4 p-2 border rounded"
+<input id="tournamentName" class="w-full text-2xl font-bold p-2 border rounded"
 placeholder="Tournament Name">
 
 <div class="flex gap-4">
 <input id="locationInput" class="flex-1 p-2 border rounded" placeholder="Location">
 <input id="timeInput" class="flex-1 p-2 border rounded" placeholder="Start Time">
-<button onclick="copyMatchLink()" class="bg-blue-600 text-white px-6 rounded">Copy Link</button>
+<button onclick="copyMatchLink()" class="bg-blue-600 text-white px-6 rounded">
+Share Tournament
+</button>
 </div>
 
 </div>
@@ -95,11 +93,11 @@ placeholder="Tournament Name">
 </select>
 
 <textarea id="playersInput" class="w-full p-3 border rounded h-36"
-placeholder="Enter player or team names"></textarea>
+placeholder="Enter players or team names"></textarea>
 
 <div class="flex gap-4">
 <input id="courtsInput" type="number" min="1" value="1" class="w-24 p-2 border rounded">
-<button onclick="saveSetup()" class="bg-green-600 text-white px-6 rounded">Sync</button>
+<button onclick="syncTournament()" class="bg-green-600 text-white px-6 rounded">Sync</button>
 <button onclick="generateMatches()" class="bg-yellow-400 px-6 rounded font-bold">Generate Round</button>
 </div>
 
@@ -120,69 +118,124 @@ storageBucket:"padelpilot-4531f.appspot.com",
 messagingSenderId:"866905934997",
 appId:"1:866905934997:web:97cb8ebc4ed35f9e41f9c"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
-let meetId=new URLSearchParams(window.location.search).get('meet');
+let meetId=null;
+let currentMatches=[];
 
-function copyMatchLink(){
-if(!meetId) return alert("Create tournament first");
-const link=location.href.split('?')[0]+"?meet="+meetId;
-navigator.clipboard.writeText(link);
-alert("Link copied");
+/* AUTO LOAD */
+document.getElementById('tournamentName').addEventListener('blur',()=>{
+if(!tournamentName.value) return;
+meetId=tournamentName.value.replace(/\s+/g,'-').toLowerCase();
+listenTournament();
+});
+
+/* CONTINUOUS LISTENER */
+function listenTournament(){
+db.ref('arena/'+meetId).on('value',snap=>{
+const data=snap.val();
+if(!data) return;
+
+locationInput.value=data.location||'';
+timeInput.value=data.time||'';
+playersInput.value=data.players||'';
+tournamentType.value=data.type||'classic';
+
+if(data.matches){
+currentMatches=data.matches;
+renderMatches();
+}
+});
 }
 
-function saveSetup(){
-const name=document.getElementById('tournamentName').value;
-if(!name) return alert("Tournament name required");
+/* SYNC */
+function syncTournament(){
+if(!tournamentName.value) return alert("Enter tournament name");
 
-meetId=name.replace(/\s+/g,'-').toLowerCase();
+meetId=tournamentName.value.replace(/\s+/g,'-').toLowerCase();
 
-db.ref('arena/'+meetId).set({
-name,
-players:document.getElementById('playersInput').value,
+db.ref('arena/'+meetId).update({
+name:tournamentName.value,
 location:locationInput.value,
 time:timeInput.value,
+players:playersInput.value,
 type:tournamentType.value,
 timestamp:Date.now()
 });
 }
 
+/* SHARE */
+function copyMatchLink(){
+if(!meetId) return alert("Sync tournament first");
+const url=location.href.split('?')[0]+"?meet="+meetId;
+navigator.clipboard.writeText(url);
+alert("Tournament link copied");
+}
+
+/* GENERATE MATCHES */
 function generateMatches(){
 
-let raw=document.getElementById('playersInput').value
-.split('\n').filter(x=>x.trim());
+let raw=playersInput.value.split('\n').filter(p=>p.trim());
+if(raw.length<4) return alert("Need at least 4 entries");
 
 let shuffled=[...raw].sort(()=>0.5-Math.random());
 let courts=parseInt(courtsInput.value)||1;
-let container=document.getElementById('matchesContainer');
-container.innerHTML='';
+
+currentMatches=[];
 
 for(let i=0;i<courts*4;i+=4){
 if(!shuffled[i+3]) break;
+
+currentMatches.push({
+teamA:[shuffled[i],shuffled[i+1]],
+teamB:[shuffled[i+2],shuffled[i+3]],
+scoreA:'',
+scoreB:''
+});
+}
+
+db.ref('arena/'+meetId+'/matches').set(currentMatches);
+renderMatches();
+}
+
+/* RENDER MATCHES */
+function renderMatches(){
+const container=document.getElementById('matchesContainer');
+container.innerHTML='';
+
+currentMatches.forEach((m,i)=>{
 
 let card=document.createElement('div');
 card.className='match-card';
 
 card.innerHTML=`
-<div class="team-block">${shuffled[i]}<br>${shuffled[i+1]}</div>
-
-<div class="score-box">
-<input type="number" placeholder="0">
-<span class="px-3 font-bold">vs</span>
-<input type="number" placeholder="0">
+<div class="team-block">
+${m.teamA[0]}<br>${m.teamA[1]}
 </div>
 
-<div class="team-block text-right">${shuffled[i+2]}<br>${shuffled[i+3]}</div>
+<div class="score-row">
+<input type="number" value="${m.scoreA}" oninput="updateScore(${i},'A',this.value)">
+<span>vs</span>
+<input type="number" value="${m.scoreB}" oninput="updateScore(${i},'B',this.value)">
+</div>
+
+<div class="team-block text-right">
+${m.teamB[0]}<br>${m.teamB[1]}
+</div>
 `;
 
 container.appendChild(card);
+});
 }
 
-db.ref('arena/'+meetId+'/matches').set(shuffled);
+/* SCORE UPDATE */
+function updateScore(index,side,val){
+currentMatches[index]['score'+side]=val;
+db.ref('arena/'+meetId+'/matches').set(currentMatches);
 }
 </script>
 
 </body>
 </html>
+```0
