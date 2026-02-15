@@ -36,7 +36,7 @@ body { margin:0; font-family: 'Space Grotesk', sans-serif; background:#0f172a; c
 .tab-view.active { display:block; }
 
 .rules-section, .player-input-section { margin-bottom:1rem; }
-.rules-section select, .player-input-section input { width:100%; padding:0.5rem; border-radius:0.5rem; border:1px solid #ccc; font-size:1rem; }
+.rules-section select, .player-input-section textarea { width:100%; padding:0.5rem; border-radius:0.5rem; border:1px solid #ccc; font-size:1rem; }
 
 .match-card { background:#f3f4f6; padding:1rem; margin-bottom:0.8rem; border-radius:1rem; font-weight:700; font-size:1.2rem; display:flex; justify-content:space-between; align-items:center; }
 .match-card input[type=number] { width:3rem; padding:0.3rem; border-radius:0.5rem; border:1px solid #ccc; text-align:center; font-weight:bold; }
@@ -64,14 +64,14 @@ input.editable-pass-input:focus { background:rgba(0,0,0,0.05); border-radius:4px
 
     <div class="arena-banner">THE ARENA</div>
 
-    <!-- Location & Time -->
-    <div class="flex gap-4 mb-4">
+    <!-- Location & Time & Share -->
+    <div class="flex gap-4 mb-4 flex-wrap">
         <div class="flex-1">
-            <p class="text-xs font-bold text-gray-700 uppercase mb-1">📍 Location</p>
+            <p class="text-xs font-bold uppercase mb-1">📍 Location</p>
             <input id="locInput" type="text" value="Constantia Hub" class="editable-pass-input text-lg">
         </div>
         <div class="flex-1">
-            <p class="text-xs font-bold text-gray-700 uppercase mb-1">⏰ Start Time</p>
+            <p class="text-xs font-bold uppercase mb-1">⏰ Start Time</p>
             <input id="timeInput" type="text" value="09:00 AM" class="editable-pass-input text-lg text-right">
         </div>
         <div class="flex-1 flex items-end">
@@ -99,12 +99,13 @@ input.editable-pass-input:focus { background:rgba(0,0,0,0.05); border-radius:4px
     <div class="player-input-section">
         <label class="font-bold">Players / Teams:</label>
         <textarea id="playersInput" class="w-full p-3 rounded-xl border border-gray-300" placeholder="Enter one name per line..."></textarea>
+        <button id="savePlayersBtn" class="mt-2 bg-green-500 text-white button w-full">💾 Sync to Cloud</button>
     </div>
 
     <!-- Courts & Generate -->
-    <div class="flex gap-2 mb-4">
+    <div class="flex gap-2 mb-4 flex-wrap">
         <input id="courtsInput" type="number" value="1" min="1" class="p-2 rounded-lg border border-gray-300 w-24 text-center">
-        <button id="generateBtn" class="bg-yellow-400 text-blue-900 button">Generate Round</button>
+        <button id="generateBtn" class="bg-yellow-400 text-blue-900 button flex-1">Generate Round</button>
     </div>
 
     <!-- Matches Section -->
@@ -112,7 +113,7 @@ input.editable-pass-input:focus { background:rgba(0,0,0,0.05); border-radius:4px
         <h3 class="font-bold mb-2">Matches:</h3>
         <div id="matchesContainer"></div>
         <div id="restingContainer" class="mt-2 text-sm italic text-gray-600"></div>
-        <button id="nextBtn" class="mt-2 bg-green-500 text-white button">Next Round</button>
+        <button id="nextBtn" class="mt-2 bg-green-500 text-white button w-full">Next Round</button>
     </div>
 
     <!-- Leaderboard -->
@@ -158,7 +159,7 @@ const db = firebase.database();
 let players = [], matches = [], currentRound = 1;
 let activeMeetId = new URLSearchParams(window.location.search).get('meet');
 
-// Tab Navigation
+// Switch tab pages
 function switchPage(pageId){
     document.querySelectorAll('.tab-view').forEach(t=>t.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
@@ -179,6 +180,13 @@ function connectToMeet(id){
             players = data.players ? data.players.split('\n').filter(p=>p.trim()) : [];
         }
     });
+    document.getElementById('savePlayersBtn').onclick = function(){
+        const list = document.getElementById('playersInput').value;
+        const loc = document.getElementById('locInput').value;
+        const time = document.getElementById('timeInput').value;
+        db.ref('meets/'+activeMeetId).update({ players:list, location:loc, time:time })
+        .then(()=>alert("Cloud Sync Successful!"));
+    };
 }
 
 // Copy Match Link
@@ -188,10 +196,95 @@ function copyMatchLink(){
     navigator.clipboard.writeText(url).then(()=>alert("Link Copied!"));
 }
 
-// Original arena functionality (rounds, matches, leaderboard)
-// ...keep all your previous functions exactly as they were: handleCheckIn, generateBtn, nextBtn, startRound, render, upd, updateBoard, downloadResults
+// Initialize if meet in URL
+if(activeMeetId){
+    document.getElementById('playersInput').value = activeMeetId;
+    connectToMeet(activeMeetId);
+}
 
+// Generate rounds / matches logic
+document.getElementById('generateBtn').onclick = function(){
+    const raw = document.getElementById('playersInput').value.split('\n').filter(p=>p.trim());
+    if(raw.length < 4) return alert("Add 4+ players!");
+    players = raw; matches=[]; currentRound=1; startRound();
+};
+
+document.getElementById('nextBtn').onclick = ()=>{ currentRound++; startRound(); };
+
+function startRound(){
+    const courts = parseInt(document.getElementById('courtsInput').value)||1;
+    const shuffled = [...players].sort(()=>0.5-Math.random());
+    const newMatches = [];
+    for(let i=0;i<courts*4 && i+3<shuffled.length;i+=4){
+        newMatches.push({id:Date.now()+i, court:(i/4)+1, p:[shuffled[i],shuffled[i+1],shuffled[i+2],shuffled[i+3]], sA:'', sB:''});
+    }
+    const resting = shuffled.slice(newMatches.length*4);
+    document.getElementById('restingContainer').textContent = resting.length? `Resting: ${resting.join(', ')}`:'Full court engagement!';
+    document.getElementById('matchesSection').classList.remove('hidden');
+    matches=[...matches, ...newMatches];
+    render(); updateBoard();
+}
+
+function render(){
+    const container = document.getElementById('matchesContainer');
+    container.innerHTML='';
+    const count=parseInt(document.getElementById('courtsInput').value)||1;
+    matches.slice(-count).forEach(m=>{
+        const div=document.createElement('div');
+        div.className='match-card';
+        div.innerHTML=`
+            <div>Court ${m.court}<br>${m.p[0]} & ${m.p[1]}</div>
+            <div class="flex gap-2">
+                <input type="number" oninput="upd(${m.id},'A',this.value)">
+                <input type="number" oninput="upd(${m.id},'B',this.value)">
+            </div>
+            <div>Court ${m.court}<br>${m.p[2]} & ${m.p[3]}</div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function upd(id, team, val){
+    const m = matches.find(x=>x.id===id);
+    if(team==='A') m.sA=val; else m.sB=val;
+    updateBoard();
+}
+
+function updateBoard(){
+    let l={}; players.forEach(p=>l[p]={pts:0,diff:0});
+    const mode=document.getElementById('modeSelect').value;
+    matches.forEach(m=>{
+        const a=parseInt(m.sA)||0, b=parseInt(m.sB)||0;
+        if(m.sA===''||m.sB==='') return;
+        m.p.slice(0,2).forEach(p=>l[p].diff+=(a-b));
+        m.p.slice(2,4).forEach(p=>l[p].diff+=(b-a));
+        if(mode==='classic'){
+            if(a>b) m.p.slice(0,2).forEach(p=>l[p].pts+=3);
+            else if(b>a) m.p.slice(2,4).forEach(p=>l[p].pts+=3);
+            else m.p.forEach(p=>l[p].pts+=1);
+        } else {
+            m.p.slice(0,2).forEach(p=>l[p].pts+=a);
+            m.p.slice(2,4).forEach(p=>l[p].pts+=b);
+        }
+    });
+    const sorted=Object.entries(l).sort((a,b)=>b[1].pts-a[1].pts || b[1].diff-a[1].diff);
+    document.getElementById('leaderboardBody').innerHTML=sorted.map(([n,d],i)=>`
+        <tr class="border-b border-gray-300">
+            <td class="p-2 text-gray-700 font-bold">#${i+1}</td>
+            <td class="p-2 font-bold text-xs uppercase">${n}</td>
+            <td class="p-2 text-yellow-500 font-black">${d.pts}</td>
+            <td class="p-2 text-[10px] ${d.diff>=0?'text-green-500':'text-red-500'}">${d.diff>0?'+':''}${d.diff}</td>
+        </tr>
+    `).join('');
+    document.getElementById('leaderboardSection').classList.remove('hidden');
+}
+
+function downloadResults(){
+    html2canvas(document.getElementById('leaderboardSection'),{backgroundColor:'#fff',scale:2}).then(canvas=>{
+        const link=document.createElement('a'); link.download='standings.png'; link.href=canvas.toDataURL(); link.click();
+    });
+}
 </script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </body>
 </html>
