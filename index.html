@@ -12,6 +12,7 @@
 <style>
 body{background:#ffffff;font-family:'Space Grotesk',sans-serif;margin:0}
 
+/* Top Tabs */
 .top-tabs{
 background:linear-gradient(90deg,#1e40af,#3b82f6,#facc15);
 padding:14px;display:flex;justify-content:center;gap:40px;
@@ -20,30 +21,39 @@ font-weight:700;letter-spacing:.08em;text-transform:uppercase;
 .top-tabs a{color:white;text-decoration:none;font-size:13px}
 .top-tabs a.active{border-bottom:3px solid white;padding-bottom:4px}
 
+/* Banners */
 .padelpilot-banner{
 background:#0f172a;color:white;text-align:center;padding:18px;
 font-size:22px;font-weight:900;letter-spacing:.2em;
 }
-
 .arena-banner{
 background:linear-gradient(90deg,#2563eb,#facc15);
 color:#0f172a;text-align:center;padding:26px;
 font-size:32px;font-weight:900;letter-spacing:.15em;
 }
 
+/* Tournament Info */
+.tournament-info-wrapper{width:100%;margin-bottom:18px;}
+.tournament-field{flex:1;display:flex;flex-direction:column;margin-bottom:8px;}
+.tournament-row{display:flex;gap:12px;width:100%;}
+.field-label{font-size:12px;font-weight:700;margin-bottom:2px;color:#0f172a;}
+.field-input{padding:8px 10px;border-radius:10px;border:1px solid #d1d5db;font-size:14px;}
+.time-field{max-width:160px;} /* resize time field */
+
+/* Share Button */
+.share-btn{margin-top:12px;width:100%;white-space:nowrap;text-align:center;background:#3b82f6;color:white;padding:10px;font-weight:700;border-radius:10px;cursor:pointer}
+
+/* Matches */
 .match-card{
 background:linear-gradient(135deg,#f1f5f9,#e0f2fe);
 border-radius:24px;padding:28px;
 display:flex;justify-content:space-between;align-items:center;
 box-shadow:0 10px 25px rgba(0,0,0,.08);
 }
-
 .team-block{width:38%;font-size:24px;font-weight:800;color:#0f172a}
-
 .score-row{
 display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px
 }
-
 .score-row input{
 width:80px;height:64px;font-size:28px;text-align:center;
 border-radius:14px;border:2px solid #e5e7eb;background:white
@@ -65,25 +75,34 @@ border-radius:14px;border:2px solid #e5e7eb;background:white
 
 <div class="max-w-5xl mx-auto p-6 space-y-6">
 
-<!-- TOURNAMENT HEADER -->
-<div class="bg-gray-100 p-6 rounded-2xl shadow space-y-4">
+<!-- TOURNAMENT HEADER + INFO -->
+<div class="tournament-info-wrapper">
 
-<input id="tournamentName" class="w-full text-2xl font-bold p-2 border rounded"
-placeholder="Tournament Name">
+  <div class="tournament-field">
+    <label class="field-label">Tournament Name</label>
+    <input id="tournamentName" class="field-input" type="text" placeholder="Enter tournament name" />
+  </div>
 
-<div class="flex gap-4">
-<input id="locationInput" class="flex-1 p-2 border rounded" placeholder="Location">
-<input id="timeInput" class="flex-1 p-2 border rounded" placeholder="Start Time">
-<button onclick="copyMatchLink()" class="bg-blue-600 text-white px-6 rounded">
-Share Tournament
-</button>
-</div>
+  <div class="tournament-row">
+    <div class="tournament-field">
+      <label class="field-label">Location</label>
+      <input id="tournamentLocation" class="field-input" type="text" placeholder="Enter location" />
+    </div>
+
+    <div class="tournament-field time-field">
+      <label class="field-label">Time</label>
+      <input id="tournamentTime" class="field-input" type="time" />
+    </div>
+  </div>
+
+  <button id="shareTournamentBtn" class="share-btn">
+    Share Tournament Link
+  </button>
 
 </div>
 
 <!-- SETUP -->
 <div class="bg-gray-100 p-6 rounded-2xl shadow space-y-4">
-
 <select id="tournamentType" class="w-full p-3 rounded border">
 <option value="classic">Classic 3 Point</option>
 <option value="teamclassic">Team Classic 3 Point</option>
@@ -124,7 +143,7 @@ const db=firebase.database();
 let meetId=null;
 let currentMatches=[];
 
-/* AUTO LOAD */
+/* AUTO LOAD TOURNAMENT */
 document.getElementById('tournamentName').addEventListener('blur',()=>{
 if(!tournamentName.value) return;
 meetId=tournamentName.value.replace(/\s+/g,'-').toLowerCase();
@@ -137,8 +156,8 @@ db.ref('arena/'+meetId).on('value',snap=>{
 const data=snap.val();
 if(!data) return;
 
-locationInput.value=data.location||'';
-timeInput.value=data.time||'';
+tournamentLocation.value=data.location||'';
+tournamentTime.value=data.time||'';
 playersInput.value=data.players||'';
 tournamentType.value=data.type||'classic';
 
@@ -149,7 +168,7 @@ renderMatches();
 });
 }
 
-/* SYNC */
+/* SYNC TO FIREBASE */
 function syncTournament(){
 if(!tournamentName.value) return alert("Enter tournament name");
 
@@ -157,15 +176,15 @@ meetId=tournamentName.value.replace(/\s+/g,'-').toLowerCase();
 
 db.ref('arena/'+meetId).update({
 name:tournamentName.value,
-location:locationInput.value,
-time:timeInput.value,
+location:tournamentLocation.value,
+time:tournamentTime.value,
 players:playersInput.value,
 type:tournamentType.value,
 timestamp:Date.now()
 });
 }
 
-/* SHARE */
+/* SHARE TO CLIPBOARD */
 function copyMatchLink(){
 if(!meetId) return alert("Sync tournament first");
 const url=location.href.split('?')[0]+"?meet="+meetId;
@@ -175,7 +194,6 @@ alert("Tournament link copied");
 
 /* GENERATE MATCHES */
 function generateMatches(){
-
 let raw=playersInput.value.split('\n').filter(p=>p.trim());
 if(raw.length<4) return alert("Need at least 4 entries");
 
@@ -205,10 +223,8 @@ const container=document.getElementById('matchesContainer');
 container.innerHTML='';
 
 currentMatches.forEach((m,i)=>{
-
 let card=document.createElement('div');
 card.className='match-card';
-
 card.innerHTML=`
 <div class="team-block">
 ${m.teamA[0]}<br>${m.teamA[1]}
@@ -224,7 +240,6 @@ ${m.teamA[0]}<br>${m.teamA[1]}
 ${m.teamB[0]}<br>${m.teamB[1]}
 </div>
 `;
-
 container.appendChild(card);
 });
 }
@@ -238,4 +253,3 @@ db.ref('arena/'+meetId+'/matches').set(currentMatches);
 
 </body>
 </html>
-```0
