@@ -58,11 +58,6 @@ display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px
 width:80px;height:64px;font-size:28px;text-align:center;
 border-radius:14px;border:2px solid #e5e7eb;background:white
 }
-
-/* Resting Players */
-.resting-players{
-margin-top:16px;padding:12px;background:#fef3c7;color:#b45309;border-radius:12px;font-weight:700;
-}
 </style>
 </head>
 
@@ -70,9 +65,9 @@ margin-top:16px;padding:12px;background:#fef3c7;color:#b45309;border-radius:12px
 
 <!-- TOP NAV -->
 <div class="top-tabs">
-<a href="arena.html" class="active">Arena</a>
-<a href="leaderboard.html">Leaderboard</a>
-<a href="rules.html">Rules</a>
+<a href="index.html" id="tab-arena">Arena</a>
+<a href="leaderboard.html" id="tab-leaderboard">Leaderboard</a>
+<a href="rules.html" id="tab-rules">Rules</a>
 </div>
 
 <div class="padelpilot-banner">PADELPILOT</div>
@@ -147,7 +142,6 @@ const db=firebase.database();
 
 let meetId=null;
 let currentMatches=[];
-let currentRound = 1; // Round counter
 
 /* AUTO LOAD TOURNAMENT */
 document.getElementById('tournamentName').addEventListener('blur',()=>{
@@ -219,26 +213,15 @@ scoreB:''
 });
 }
 
-// Resting players
-const restingPlayers = shuffled.slice(currentMatches.length*4);
-
 db.ref('arena/'+meetId+'/matches').set(currentMatches);
-
-renderMatches(restingPlayers);
+renderMatches();
 }
 
 /* RENDER MATCHES */
-function renderMatches(restingPlayers=[]){
+function renderMatches(){
 const container=document.getElementById('matchesContainer');
 container.innerHTML='';
 
-// Round display
-const roundDiv=document.createElement('div');
-roundDiv.className='text-xl font-bold mb-4';
-roundDiv.textContent=`Round ${currentRound}`;
-container.appendChild(roundDiv);
-
-// Match cards
 currentMatches.forEach((m,i)=>{
 let card=document.createElement('div');
 card.className='match-card';
@@ -259,16 +242,6 @@ ${m.teamB[0]}<br>${m.teamB[1]}
 `;
 container.appendChild(card);
 });
-
-// Resting players display
-if(restingPlayers.length>0){
-const restingDiv=document.createElement('div');
-restingDiv.className='resting-players';
-restingDiv.textContent='Resting Players: '+restingPlayers.join(', ');
-container.appendChild(restingDiv);
-}
-
-currentRound++; // Increment round
 }
 
 /* SCORE UPDATE */
@@ -276,6 +249,12 @@ function updateScore(index,side,val){
 currentMatches[index]['score'+side]=val;
 db.ref('arena/'+meetId+'/matches').set(currentMatches);
 }
+
+/* AUTO-ACTIVE TAB */
+const path = window.location.pathname.split('/').pop();
+if(path === "index.html" || path === "") document.getElementById('tab-arena').classList.add('active');
+else if(path === "leaderboard.html") document.getElementById('tab-leaderboard').classList.add('active');
+else if(path === "rules.html") document.getElementById('tab-rules').classList.add('active');
 </script>
 
 </body>
