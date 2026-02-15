@@ -1,259 +1,290 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PadelPilot Arena</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PadelPilot Arena</title>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&display=swap');
-        body { background-color: #fff; color: #0f172a; margin: 0; font-family: 'Space Grotesk', sans-serif; padding-bottom: 100px; }
+<style>
+body{background:#ffffff;font-family:'Space Grotesk',sans-serif;margin:0}
 
-        /* Arena and PadelPilot banners */
-        .padel-banner { background: #1e40af; color: white; text-align: center; padding: 1rem 0; font-size: 1.5rem; font-weight: 700; letter-spacing: 1px; }
-        .arena-banner { background: linear-gradient(-45deg, #1e40af, #3b82f6, #fbbf24, #2563eb); background-size: 400% 400%; animation: gradientBG 15s ease infinite; color: white; text-align: center; padding: 1rem 0; font-size: 1.25rem; font-weight: 700; }
-        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+/* Top Tabs */
+.top-tabs{
+background:linear-gradient(90deg,#1e40af,#3b82f6,#facc15);
+padding:14px;display:flex;justify-content:center;gap:40px;
+font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+}
+.top-tabs a{color:white;text-decoration:none;font-size:13px}
+.top-tabs a.active{border-bottom:3px solid white;padding-bottom:4px}
 
-        /* Glass card style */
-        .glass-card { background: rgba(30, 41, 59, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(0,0,0,0.1); }
+/* Banners */
+.padelpilot-banner{
+background:#0f172a;color:white;text-align:center;padding:18px;
+font-size:22px;font-weight:900;letter-spacing:.2em;
+}
+.arena-banner{
+background:linear-gradient(90deg,#2563eb,#facc15);
+color:#0f172a;text-align:center;padding:26px;
+font-size:32px;font-weight:900;letter-spacing:.15em;
+}
 
-        /* Tabs */
-        .tab-nav { display: flex; justify-content: center; margin-bottom: 1rem; gap: 1rem; }
-        .tab-btn { padding: 0.5rem 1rem; font-weight: 700; border-radius: 1rem; cursor: pointer; text-transform: uppercase; background: linear-gradient(135deg,#3b82f6,#fbbf24,#1e40af); background-size: 300% 300%; color: white; transition: 0.5s; }
-        .tab-btn.active { box-shadow: 0 0 15px rgba(0,0,0,0.2); transform: scale(1.05); }
+/* Tournament Info */
+.tournament-info-wrapper{width:100%;margin-bottom:18px;}
+.tournament-field{flex:1;display:flex;flex-direction:column;margin-bottom:8px;}
+.tournament-row{display:flex;gap:12px;width:100%;}
+.field-label{font-size:12px;font-weight:700;margin-bottom:2px;color:#0f172a;}
+.field-input{padding:8px 10px;border-radius:10px;border:1px solid #d1d5db;font-size:14px;}
+.time-field{max-width:160px;} /* resize time field */
 
-        .tab-view { display: none; }
-        .active-tab { display: block; }
+/* Share Button */
+.share-btn{margin-top:12px;width:100%;white-space:nowrap;text-align:center;background:#3b82f6;color:white;padding:10px;font-weight:700;border-radius:10px;cursor:pointer}
 
-        /* Inputs */
-        .editable-input { background: #f1f5f9; border: none; padding: 0.5rem; border-radius: 0.5rem; font-weight: 600; width: 100%; }
+/* Matches */
+.match-card{
+background:linear-gradient(135deg,#f1f5f9,#e0f2fe);
+border-radius:24px;padding:28px;
+display:flex;justify-content:space-between;align-items:center;
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+.team-block{width:38%;font-size:24px;font-weight:800;color:#0f172a}
+.score-row{
+display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px
+}
+.score-row input{
+width:80px;height:64px;font-size:28px;text-align:center;
+border-radius:14px;border:2px solid #e5e7eb;background:white
+}
 
-        /* Matches */
-        .match-card { background: #e2e8f0; padding: 1rem; border-radius: 1.5rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-weight: 700; }
-
-        /* Resting players */
-        .resting-container { margin-top: 1rem; padding: 0.5rem; border-radius: 1rem; background: #fef3c7; color: #92400e; font-weight: 700; text-align: center; }
-
-        /* Round display */
-        .round-display { margin-bottom: 1rem; text-align: center; font-weight: 700; font-size: 1.25rem; color: #1e3a8a; }
-    </style>
+/* Round & Resting */
+.round-display{font-size:16px;font-weight:700;text-align:center;margin-bottom:12px;color:#2563eb;}
+.resting-display{font-size:14px;font-weight:600;text-align:center;margin-top:6px;color:#dc2626;}
+</style>
 </head>
+
 <body>
-    <!-- PadelPilot Banner -->
-    <div class="padel-banner">PADELPILOT</div>
 
-    <!-- Arena Banner -->
-    <div class="arena-banner">THE ARENA</div>
+<!-- TOP NAV -->
+<div class="top-tabs">
+<a href="arena.html" class="active">Arena</a>
+<a href="leaderboard.html">Leaderboard</a>
+<a href="rules.html">Rules</a>
+</div>
 
-    <!-- Tabs -->
-    <div class="tab-nav">
-        <div class="tab-btn active" onclick="switchTab('arena')">Arena</div>
-        <div class="tab-btn" onclick="switchTab('leaderboard')">Leaderboard</div>
-        <div class="tab-btn" onclick="switchTab('rules')">Rules</div>
+<div class="padelpilot-banner">PADELPILOT</div>
+<div class="arena-banner">ARENA</div>
+
+<div class="max-w-5xl mx-auto p-6 space-y-6">
+
+<!-- TOURNAMENT HEADER + INFO -->
+<div class="tournament-info-wrapper">
+
+  <div class="tournament-field">
+    <label class="field-label">Tournament Name</label>
+    <input id="tournamentName" class="field-input" type="text" placeholder="Enter tournament name" />
+  </div>
+
+  <div class="tournament-row">
+    <div class="tournament-field">
+      <label class="field-label">Location</label>
+      <input id="tournamentLocation" class="field-input" type="text" placeholder="Enter location" />
     </div>
 
-    <!-- Main Container -->
-    <div class="p-4 max-w-4xl mx-auto">
-
-        <!-- Arena Tab -->
-        <div id="view-arena" class="tab-view active-tab">
-
-            <!-- Tournament Info -->
-            <div class="glass-card p-4 mb-4">
-                <input id="tournamentName" type="text" placeholder="Tournament Name" class="editable-input mb-2">
-                <input id="locationInput" type="text" placeholder="Location" class="editable-input mb-2">
-                <input id="timeInput" type="text" placeholder="Start Time" class="editable-input mb-2">
-                <button id="shareTournamentBtn" class="w-full bg-blue-500 text-white py-2 rounded-lg font-bold">Share Tournament</button>
-            </div>
-
-            <!-- Player Entry -->
-            <textarea id="playersInput" class="w-full h-40 p-3 rounded-lg border border-gray-300 mb-2" placeholder="Enter player or team names, one per line"></textarea>
-            <button id="savePlayersBtn" class="w-full bg-green-500 text-white py-2 rounded-lg font-bold mb-4">Sync to Cloud</button>
-
-            <!-- Options -->
-            <div class="flex gap-2 mb-4">
-                <input id="courtsInput" type="number" value="1" min="1" class="editable-input w-24">
-                <select id="modeSelect" class="editable-input w-full">
-                    <option value="classic3">Classic 3 point</option>
-                    <option value="teamClassic3">Team Classic 3 point</option>
-                    <option value="classicAmericano">Classic Americano</option>
-                    <option value="mixedAmericano">Mixed Americano</option>
-                    <option value="teamAmericano">Team Americano</option>
-                </select>
-            </div>
-
-            <button id="generateBtn" class="w-full bg-yellow-400 text-blue-900 py-3 rounded-lg font-bold mb-4">Generate Matches</button>
-
-            <!-- Round Counter -->
-            <div id="roundDisplay" class="round-display">Round 1</div>
-
-            <!-- Matches -->
-            <div id="matchesContainer"></div>
-
-            <!-- Resting Players -->
-            <div id="restingContainer" class="resting-container">Resting players will appear here</div>
-        </div>
-
-        <!-- Leaderboard Tab -->
-        <div id="view-leaderboard" class="tab-view">
-            <div class="glass-card p-4">
-                <h2 class="font-bold mb-2">Leaderboard</h2>
-                <table class="w-full text-left">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Player/Team</th>
-                            <th>Points</th>
-                            <th>Diff</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboardBody"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Rules Tab -->
-        <div id="view-rules" class="tab-view">
-            <div class="glass-card p-4">
-                <h2 class="font-bold mb-2">Tournament Rules</h2>
-                <ul class="list-disc pl-5">
-                    <li>Classic 3 point: Each player teams up with every other player once. Points collected individually.</li>
-                    <li>Team Classic 3 point: Teams play each other once. Points collected per team.</li>
-                    <li>Classic Americano: Each player teams up with every other player once. Points collected individually.</li>
-                    <li>Mixed Americano: Players team up with opposite sex once. Points collected individually.</li>
-                    <li>Team Americano: Teams play each other once. Points collected per team.</li>
-                    <li>Official Padel Tennis rules applied for scoring, court setup, and match play.</li>
-                </ul>
-            </div>
-        </div>
-
+    <div class="tournament-field time-field">
+      <label class="field-label">Time</label>
+      <input id="tournamentTime" class="field-input" type="time" />
     </div>
+  </div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AiZaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
-            authDomain: "padelpilot-4531f.firebaseapp.com",
-            databaseURL: "https://padelpilot-4531f-default-rtdb.firebaseio.com",
-            projectId: "padelpilot-4531f",
-            storageBucket: "padelpilot-4531f.appspot.com",
-            messagingSenderId: "866905934997",
-            appId: "1:866905934997:web:97cb8ebc4ed35f9e41f9c",
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+  <button id="shareTournamentBtn" class="share-btn">
+    Share Tournament Link
+  </button>
 
-        let players = [], matches = [], currentRound = 1, tournamentName = '';
-        let activeTournamentId = new URLSearchParams(window.location.search).get('tournament');
+</div>
 
-        // TAB SWITCHING
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active-tab'));
-            document.getElementById('view-' + tab).classList.add('active-tab');
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-        }
+<!-- SETUP -->
+<div class="bg-gray-100 p-6 rounded-2xl shadow space-y-4">
+<select id="tournamentType" class="w-full p-3 rounded border">
+<option value="classic">Classic 3 Point</option>
+<option value="teamclassic">Team Classic 3 Point</option>
+<option value="americano">Classic Americano</option>
+<option value="mixed">Mixed Americano</option>
+<option value="teamamericano">Team Americano</option>
+</select>
 
-        // CONNECT TO TOURNAMENT
-        function connectToTournament(name){
-            if(!name) return;
-            activeTournamentId = name.replace(/\s+/g,'-').toLowerCase();
-            db.ref('tournaments/' + activeTournamentId).on('value', snapshot => {
-                const data = snapshot.val();
-                if(data){
-                    if(data.players) document.getElementById('playersInput').value = data.players;
-                    if(data.location) document.getElementById('locationInput').value = data.location;
-                    if(data.time) document.getElementById('timeInput').value = data.time;
-                    players = data.players ? data.players.split('\n').filter(p=>p.trim()) : [];
-                }
-            });
-        }
+<textarea id="playersInput" class="w-full p-3 border rounded h-36"
+placeholder="Enter players or team names"></textarea>
 
-        if(activeTournamentId){
-            document.getElementById('tournamentName').value = activeTournamentId;
-            connectToTournament(activeTournamentId);
-        }
+<div class="flex gap-4">
+<input id="courtsInput" type="number" min="1" value="1" class="w-24 p-2 border rounded">
+<button onclick="syncTournament()" class="bg-green-600 text-white px-6 rounded">Sync</button>
+<button onclick="generateMatches()" class="bg-yellow-400 px-6 rounded font-bold">Generate Round</button>
+</div>
 
-        document.getElementById('shareTournamentBtn').onclick = () => {
-            const name = document.getElementById('tournamentName').value;
-            if(!name) return alert("Enter a tournament name first!");
-            const url = window.location.href.split('?')[0] + "?tournament=" + name.replace(/\s+/g,'-').toLowerCase();
-            navigator.clipboard.writeText(url).then(()=>alert("Tournament link copied!"));
-        };
+</div>
 
-        document.getElementById('savePlayersBtn').onclick = () => {
-            if(!activeTournamentId) return alert("Connect to a tournament first!");
-            const list = document.getElementById('playersInput').value;
-            const loc = document.getElementById('locationInput').value;
-            const time = document.getElementById('timeInput').value;
-            db.ref('tournaments/' + activeTournamentId).update({
-                players: list,
-                location: loc,
-                time: time,
-                timestamp: Date.now()
-            }).then(()=>alert("Tournament synced to Cloud!"));
-        };
+<!-- ROUND DISPLAY -->
+<div id="roundDisplay" class="round-display">Round 1</div>
 
-        // GENERATE MATCHES
-        document.getElementById('generateBtn').onclick = () => {
-            const raw = document.getElementById('playersInput').value.split('\n').filter(p=>p.trim());
-            if(raw.length < 4) return alert("Add at least 4 players/teams!");
-            players = raw;
-            currentRound++;
-            document.getElementById('roundDisplay').textContent = "Round " + currentRound;
+<!-- MATCHES -->
+<div id="matchesContainer" class="space-y-6"></div>
 
-            const courts = parseInt(document.getElementById('courtsInput').value) || 1;
-            matches = [];
-            for(let i=0; i<raw.length; i+=4){
-                const teamA = raw.slice(i,i+2);
-                const teamB = raw.slice(i+2,i+4);
-                if(teamB.length < 2) break;
-                matches.push({teamA, teamB});
-            }
+<!-- RESTING PLAYERS -->
+<div id="restingPlayers" class="resting-display"></div>
 
-            renderMatches();
-            renderRestingPlayers(raw, matches);
-            updateLeaderboard();
-        };
+</div>
 
-        function renderMatches(){
-            const container = document.getElementById('matchesContainer');
-            container.innerHTML = '';
-            matches.forEach((m,i)=>{
-                const div = document.createElement('div');
-                div.className = 'match-card';
-                div.innerHTML = `
-                    <div>${m.teamA.join(' & ')}</div>
-                    <div>vs</div>
-                    <div>${m.teamB.join(' & ')}</div>
-                `;
-                container.appendChild(div);
-            });
-        }
+<script>
+const firebaseConfig={
+apiKey:"AIzaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
+authDomain:"padelpilot-4531f.firebaseapp.com",
+databaseURL:"https://padelpilot-4531f-default-rtdb.firebaseio.com",
+projectId:"padelpilot-4531f",
+storageBucket:"padelpilot-4531f.appspot.com",
+messagingSenderId:"866905934997",
+appId:"1:866905934997:web:97cb8ebc4ed35f9e41f9c"
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
 
-        function renderRestingPlayers(allPlayers, matches){
-            const container = document.getElementById('restingContainer');
-            let playing = [];
-            matches.forEach(m => { playing.push(...m.teamA, ...m.teamB); });
-            const resting = allPlayers.filter(p => !playing.includes(p));
-            container.textContent = resting.length ? "Resting: " + resting.join(', ') : "All players are in matches!";
-        }
+let meetId=null;
+let currentMatches=[];
+let currentRound=1;
 
-        function updateLeaderboard(){
-            const body = document.getElementById('leaderboardBody');
-            body.innerHTML = players.map((p,i)=>`
-                <tr>
-                    <td>${i+1}</td>
-                    <td>${p}</td>
-                    <td>0</td>
-                    <td>0</td>
-                </tr>
-            `).join('');
-        }
-    </script>
+/* AUTO LOAD TOURNAMENT */
+document.getElementById('tournamentName').addEventListener('blur',()=>{
+if(!tournamentName.value) return;
+meetId=tournamentName.value.replace(/\s+/g,'-').toLowerCase();
+listenTournament();
+});
+
+/* CONTINUOUS LISTENER */
+function listenTournament(){
+db.ref('arena/'+meetId).on('value',snap=>{
+const data=snap.val();
+if(!data) return;
+
+tournamentLocation.value=data.location||'';
+tournamentTime.value=data.time||'';
+playersInput.value=data.players||'';
+tournamentType.value=data.type||'classic';
+currentRound=data.round||1;
+
+if(data.matches){
+currentMatches=data.matches;
+renderMatches();
+}
+updateRoundDisplay();
+updateRestingPlayers();
+});
+}
+
+/* SYNC TO FIREBASE */
+function syncTournament(){
+if(!tournamentName.value) return alert("Enter tournament name");
+
+meetId=tournamentName.value.replace(/\s+/g,'-').toLowerCase();
+
+db.ref('arena/'+meetId).update({
+name:tournamentName.value,
+location:tournamentLocation.value,
+time:tournamentTime.value,
+players:playersInput.value,
+type:tournamentType.value,
+matches:currentMatches,
+round:currentRound,
+timestamp:Date.now()
+});
+}
+
+/* SHARE TO CLIPBOARD */
+function copyMatchLink(){
+if(!meetId) return alert("Sync tournament first");
+const url=location.href.split('?')[0]+"?meet="+meetId;
+navigator.clipboard.writeText(url);
+alert("Tournament link copied");
+}
+
+/* GENERATE MATCHES */
+function generateMatches(){
+let raw=playersInput.value.split('\n').filter(p=>p.trim());
+if(raw.length<4) return alert("Need at least 4 entries");
+
+let shuffled=[...raw].sort(()=>0.5-Math.random());
+let courts=parseInt(courtsInput.value)||1;
+
+currentMatches=[];
+currentRound=1;
+
+for(let i=0;i<courts*4;i+=4){
+if(!shuffled[i+3]) break;
+
+currentMatches.push({
+teamA:[shuffled[i],shuffled[i+1]],
+teamB:[shuffled[i+2],shuffled[i+3]],
+scoreA:'',
+scoreB:''
+});
+}
+
+updateRestingPlayers();
+updateRoundDisplay();
+db.ref('arena/'+meetId+'/matches').set(currentMatches);
+renderMatches();
+}
+
+/* RENDER MATCHES */
+function renderMatches(){
+const container=document.getElementById('matchesContainer');
+container.innerHTML='';
+
+currentMatches.forEach((m,i)=>{
+let card=document.createElement('div');
+card.className='match-card';
+card.innerHTML=`
+<div class="team-block">
+${m.teamA[0]}<br>${m.teamA[1]}
+</div>
+
+<div class="score-row">
+<input type="number" value="${m.scoreA}" oninput="updateScore(${i},'A',this.value)">
+<span>vs</span>
+<input type="number" value="${m.scoreB}" oninput="updateScore(${i},'B',this.value)">
+</div>
+
+<div class="team-block text-right">
+${m.teamB[0]}<br>${m.teamB[1]}
+</div>
+`;
+container.appendChild(card);
+});
+updateRestingPlayers();
+updateRoundDisplay();
+}
+
+/* SCORE UPDATE */
+function updateScore(index,side,val){
+currentMatches[index]['score'+side]=val;
+db.ref('arena/'+meetId+'/matches').set(currentMatches);
+}
+
+/* ROUND DISPLAY */
+function updateRoundDisplay(){
+document.getElementById('roundDisplay').textContent=`Round ${currentRound}`;
+}
+
+/* RESTING PLAYERS */
+function updateRestingPlayers(){
+let allPlayers=playersInput.value.split('\n').filter(p=>p.trim());
+let activePlayers=currentMatches.flatMap(m=>[...m.teamA,...m.teamB]);
+let resting=allPlayers.filter(p=>!activePlayers.includes(p));
+document.getElementById('restingPlayers').textContent=resting.length>0 ? 'Resting: '+resting.join(', ') : '';
+}
+
+</script>
+
 </body>
 </html>
