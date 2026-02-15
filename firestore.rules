@@ -1,2 +1,22 @@
-npm install -g firebase-tools
-firebase login
+// Only authenticated users can read/write
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Allow anyone to read public data
+    match /matches/{matchId} {
+      allow read: if true;
+      allow write: if request.time < timestamp.date(2100,1,1);
+    }
+
+    match /players/{playerId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    match /matchInvites/{inviteId} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}
