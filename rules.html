@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PadelPilot Rules</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&display=swap');
+    body { font-family: 'Space Grotesk', sans-serif; background-color: #ffffff; color: #111827; margin: 0; padding-bottom: 50px; }
+    .tab-bar { display: flex; justify-content: center; background: linear-gradient(-45deg,#1e40af,#3b82f6,#fbbf24,#2563eb); background-size: 400% 400%; animation: gradientBG 15s ease infinite; }
+    @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .tab-bar a { flex: 1; text-align: center; padding: 1rem; font-weight: 700; color: white; text-decoration: none; text-transform: uppercase; }
+    .tab-bar a.active { background-color: rgba(255,255,255,0.2); border-radius: 0.5rem; }
+    h1,h2,h3 { font-weight: 700; }
+    h1 { font-size: 2.5rem; margin-bottom: 0.5rem; color: #1e40af; text-align: center; }
+    h2 { font-size: 1.5rem; margin-top: 1.5rem; margin-bottom: 0.5rem; color: #2563eb; }
+    h3 { font-size: 1.1rem; margin-bottom: 0.25rem; color: #1f2937; }
+    p { margin-bottom: 0.5rem; line-height: 1.5; }
+    .section { max-width: 900px; margin: 1rem auto; padding: 1.5rem; background-color: #f3f4f6; border-radius: 1rem; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    ul { list-style: disc; margin-left: 1.5rem; margin-bottom: 1rem; }
+    code { background-color: #e5e7eb; padding: 0.1rem 0.3rem; border-radius: 0.25rem; }
+</style>
+</head>
+<body>
+
+<!-- Top Tab Bar -->
+<div class="tab-bar">
+    <a href="arena.html">Arena</a>
+    <a href="rules.html" class="active">Rules</a>
+    <a href="leaderboard.html">Leaderboard</a>
+</div>
+
+<h1>PadelPilot Rules</h1>
+
+<!-- Game Rules Section -->
+<div class="section">
+    <h2>Game Rules (Official)</h2>
+    <ul>
+        <li>Padel is played in doubles on a 10m x 20m enclosed court.</li>
+        <li>The net divides the court; serve must be made diagonally from one service box to another.</li>
+        <li>Serves must be underhand, below waist height, after the ball bounces once behind the baseline.</li>
+        <li>Balls may be played off walls on your side before crossing the net.</li>
+        <li>Ball that bounces twice, hits net incorrectly, or touches the fence on the wrong side results in point loss.</li>
+    </ul>
+</div>
+
+<!-- Scoring Rules Section -->
+<div class="section">
+    <h2>Scoring Rules</h2>
+    <ul>
+        <li>Points follow tennis scoring: 15, 30, 40, Advantage, Game.</li>
+        <li>Deuce (40-40) requires two consecutive points to win the game.</li>
+        <li>Sets: first to 6 games with 2-game lead. 6-6 triggers tiebreak.</li>
+        <li>Matches are best of 3 sets.</li>
+        <li>Service faults: serve above waist, wrong box, stepping over line.</li>
+    </ul>
+</div>
+
+<!-- Tournament/Randomizer Rules Section -->
+<div class="section">
+    <h2>Tournament & Randomizer Rules</h2>
+
+    <h3>Classic 3 Point</h3>
+    <ul>
+        <li>Each player teams up with every other player once.</li>
+        <li>Points collected individually.</li>
+        <li>Follows official scoring rules.</li>
+    </ul>
+
+    <h3>Team Classic 3 Point</h3>
+    <ul>
+        <li>Pre-defined teams play all other teams once.</li>
+        <li>Points are collected per team.</li>
+        <li>Standard padel scoring applies.</li>
+    </ul>
+
+    <h3>Classic Americano</h3>
+    <ul>
+        <li>Each player teams up with others once in Americano format.</li>
+        <li>Points collected individually.</li>
+    </ul>
+
+    <h3>Mixed Americano</h3>
+    <ul>
+        <li>Players team with a partner of opposite sex once.</li>
+        <li>Points collected individually.</li>
+    </ul>
+
+    <h3>Team Americano</h3>
+    <ul>
+        <li>Pre-defined teams play all other teams once.</li>
+        <li>Points collected per team.</li>
+    </ul>
+</div>
+
+<!-- Optional: Key Terms -->
+<div class="section">
+    <h2>Key Terms</h2>
+    <ul>
+        <li><strong>Let:</strong> Serve touches net but lands correctly — replayed.</li>
+        <li><strong>Fault:</strong> Serve violates official rules.</li>
+        <li><strong>Volley:</strong> Ball hit before bouncing; legal except on serve.</li>
+    </ul>
+</div>
+
+</body>
+</html>
