@@ -22,32 +22,76 @@ font-weight:700;letter-spacing:.08em;text-transform:uppercase;
 background:#0f172a;color:white;text-align:center;padding:18px;
 font-size:22px;font-weight:900;letter-spacing:.2em;
 }
+.arena-banner{
+background:linear-gradient(90deg,#2563eb,#facc15);
+color:#0f172a;text-align:center;padding:26px;
+font-size:32px;font-weight:900;letter-spacing:.15em;
+}
+
+/* Rules Content */
+.rules-container{
+max-width:5xl;
+margin:0 auto;
+padding:24px;
+line-height:1.6;
+color:#0f172a;
+}
+.rules-container h2{font-size:20px;font-weight:800;margin-top:24px;margin-bottom:12px}
+.rules-container ul{list-style-type:disc;margin-left:20px;margin-bottom:16px}
+.rules-container li{margin-bottom:8px}
+.rules-container .highlight{font-weight:700;color:#2563eb}
 </style>
 </head>
 <body>
 
 <!-- TOP NAV -->
 <div class="top-tabs">
-<a href="index.html" id="tab-arena">Arena</a>
-<a href="leaderboard.html" id="tab-leaderboard">Leaderboard</a>
-<a href="rules.html" id="tab-rules">Rules</a>
+<a href="index.html">Arena</a>
+<a href="leaderboard.html">Leaderboard</a>
+<a href="rules.html" class="active">Rules</a>
 </div>
 
-<div class="padelpilot-banner">PADELPILOT RULES</div>
+<div class="padelpilot-banner">PADELPILOT</div>
+<div class="arena-banner">RULES</div>
 
-<div class="max-w-4xl mx-auto p-6 space-y-6">
-<h2 class="text-xl font-bold">Official Padel Tennis Rules</h2>
-<p>Include all official game rules, scoring rules, and randomizer tournament rules...</p>
-<!-- Keep all your existing rules content here -->
+<div class="rules-container">
+
+  <!-- Game Rules -->
+  <h2>Game Rules</h2>
+  <ul>
+    <li>Padel is played in doubles on a court smaller than a tennis court with walls that can be used to rebound the ball.</li>
+    <li>The ball must bounce on the ground before hitting walls.</li>
+    <li>The server must hit the ball underhand into the diagonally opposite service box.</li>
+    <li>Points are scored when the opposing team fails to return the ball according to the rules.</li>
+    <li>The match format is best of 3 sets; each set is first to 6 games, with a tiebreak at 6-6.</li>
+  </ul>
+
+  <!-- Scoring Rules -->
+  <h2>Scoring Rules</h2>
+  <ul>
+    <li>Points are scored as 15, 30, 40, and game, same as tennis.</li>
+    <li>If the score reaches 40-40, a team must win by 2 points (deuce).</li>
+    <li><span class="highlight">Americano Scoring System:</span>
+      <ul>
+        <li>Each match winner gets <strong>2 points</strong>.</li>
+        <li>Loser gets <strong>1 point</strong> if they win at least one game.</li>
+        <li>Score difference (+/-) is calculated as games won minus games lost.</li>
+        <li>Total points are accumulated over all rounds to determine ranking.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <!-- Randomizer / Tournament Types -->
+  <h2>Randomizer Tournament Types</h2>
+  <ul>
+    <li><span class="highlight">Classic 3 Point:</span> Each player teams up with every other player once. Points collected individually.</li>
+    <li><span class="highlight">Team Classic 3 Point:</span> Each team plays every other team once. Points collected per team. Perfect for pre-defined teams.</li>
+    <li><span class="highlight">Classic Americano:</span> Each player teams up with every other player once. Points collected individually using Americano scoring.</li>
+    <li><span class="highlight">Mixed Americano:</span> All players team up with a player of the opposite sex once. Points collected individually using Americano scoring.</li>
+    <li><span class="highlight">Team Americano:</span> Each team plays every other team once. Points collected per team using Americano scoring. Perfect for pre-defined teams.</li>
+  </ul>
+
 </div>
-
-<script>
-// AUTO-ACTIVE TAB
-const path = window.location.pathname.split('/').pop();
-if(path === "index.html" || path === "") document.getElementById('tab-arena').classList.add('active');
-else if(path === "leaderboard.html") document.getElementById('tab-leaderboard').classList.add('active');
-else if(path === "rules.html") document.getElementById('tab-rules').classList.add('active');
-</script>
 
 </body>
 </html>
