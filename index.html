@@ -59,9 +59,10 @@ width:80px;height:64px;font-size:28px;text-align:center;
 border-radius:14px;border:2px solid #e5e7eb;background:white
 }
 
-/* Round & Resting */
-.round-display{font-size:16px;font-weight:700;text-align:center;margin-bottom:12px;color:#2563eb;}
-.resting-display{font-size:14px;font-weight:600;text-align:center;margin-top:6px;color:#dc2626;}
+/* Resting Players */
+.resting-players{
+margin-top:16px;padding:12px;background:#fef3c7;color:#b45309;border-radius:12px;font-weight:700;
+}
 </style>
 </head>
 
@@ -126,14 +127,8 @@ placeholder="Enter players or team names"></textarea>
 
 </div>
 
-<!-- ROUND DISPLAY -->
-<div id="roundDisplay" class="round-display">Round 1</div>
-
 <!-- MATCHES -->
 <div id="matchesContainer" class="space-y-6"></div>
-
-<!-- RESTING PLAYERS -->
-<div id="restingPlayers" class="resting-display"></div>
 
 </div>
 
@@ -152,7 +147,7 @@ const db=firebase.database();
 
 let meetId=null;
 let currentMatches=[];
-let currentRound=1;
+let currentRound = 1; // Round counter
 
 /* AUTO LOAD TOURNAMENT */
 document.getElementById('tournamentName').addEventListener('blur',()=>{
@@ -171,14 +166,11 @@ tournamentLocation.value=data.location||'';
 tournamentTime.value=data.time||'';
 playersInput.value=data.players||'';
 tournamentType.value=data.type||'classic';
-currentRound=data.round||1;
 
 if(data.matches){
 currentMatches=data.matches;
 renderMatches();
 }
-updateRoundDisplay();
-updateRestingPlayers();
 });
 }
 
@@ -194,8 +186,6 @@ location:tournamentLocation.value,
 time:tournamentTime.value,
 players:playersInput.value,
 type:tournamentType.value,
-matches:currentMatches,
-round:currentRound,
 timestamp:Date.now()
 });
 }
@@ -217,7 +207,6 @@ let shuffled=[...raw].sort(()=>0.5-Math.random());
 let courts=parseInt(courtsInput.value)||1;
 
 currentMatches=[];
-currentRound=1;
 
 for(let i=0;i<courts*4;i+=4){
 if(!shuffled[i+3]) break;
@@ -230,17 +219,26 @@ scoreB:''
 });
 }
 
-updateRestingPlayers();
-updateRoundDisplay();
+// Resting players
+const restingPlayers = shuffled.slice(currentMatches.length*4);
+
 db.ref('arena/'+meetId+'/matches').set(currentMatches);
-renderMatches();
+
+renderMatches(restingPlayers);
 }
 
 /* RENDER MATCHES */
-function renderMatches(){
+function renderMatches(restingPlayers=[]){
 const container=document.getElementById('matchesContainer');
 container.innerHTML='';
 
+// Round display
+const roundDiv=document.createElement('div');
+roundDiv.className='text-xl font-bold mb-4';
+roundDiv.textContent=`Round ${currentRound}`;
+container.appendChild(roundDiv);
+
+// Match cards
 currentMatches.forEach((m,i)=>{
 let card=document.createElement('div');
 card.className='match-card';
@@ -261,8 +259,16 @@ ${m.teamB[0]}<br>${m.teamB[1]}
 `;
 container.appendChild(card);
 });
-updateRestingPlayers();
-updateRoundDisplay();
+
+// Resting players display
+if(restingPlayers.length>0){
+const restingDiv=document.createElement('div');
+restingDiv.className='resting-players';
+restingDiv.textContent='Resting Players: '+restingPlayers.join(', ');
+container.appendChild(restingDiv);
+}
+
+currentRound++; // Increment round
 }
 
 /* SCORE UPDATE */
@@ -270,20 +276,6 @@ function updateScore(index,side,val){
 currentMatches[index]['score'+side]=val;
 db.ref('arena/'+meetId+'/matches').set(currentMatches);
 }
-
-/* ROUND DISPLAY */
-function updateRoundDisplay(){
-document.getElementById('roundDisplay').textContent=`Round ${currentRound}`;
-}
-
-/* RESTING PLAYERS */
-function updateRestingPlayers(){
-let allPlayers=playersInput.value.split('\n').filter(p=>p.trim());
-let activePlayers=currentMatches.flatMap(m=>[...m.teamA,...m.teamB]);
-let resting=allPlayers.filter(p=>!activePlayers.includes(p));
-document.getElementById('restingPlayers').textContent=resting.length>0 ? 'Resting: '+resting.join(', ') : '';
-}
-
 </script>
 
 </body>
