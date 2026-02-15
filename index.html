@@ -5,225 +5,151 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PadelPilot Arena</title>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<!-- TailwindCSS -->
 <script src="https://cdn.tailwindcss.com"></script>
+
+<!-- HTML2Canvas for leaderboard export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&display=swap');
 
-body {
-    background-color: #ffffff;
-    color: #111827;
-    margin: 0;
-    font-family: 'Space Grotesk', sans-serif;
-    padding-bottom: 100px;
-}
+body { background: #ffffff; color: #111827; margin: 0; font-family: 'Space Grotesk', sans-serif; padding-bottom: 100px; }
 
-.vibrant-tabs {
-    display: flex;
-    justify-content: space-around;
-    background: linear-gradient(90deg, #facc15, #3b82f6, #10b981, #f472b6);
-    background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite;
-    padding: 0.5rem 0;
-    font-weight: 700;
-    border-bottom: 2px solid #1e3a8a;
-}
+.master-bg { min-height: 100vh; }
 
-.vibrant-tabs button {
-    color: white;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    padding: 0.5rem 1rem;
-    border-radius: 1rem;
-    transition: transform 0.2s, background-color 0.2s;
+.banner-top { 
+    background: linear-gradient(-45deg,#1e40af,#3b82f6,#fbbf24,#2563eb);
+    background-size: 400% 400%; animation: gradientBG 15s ease infinite;
 }
+@keyframes gradientBG { 0% { background-position:0% 50%; } 50% { background-position:100% 50%; } 100% { background-position:0% 50%; } }
 
-.vibrant-tabs button:hover {
-    transform: scale(1.05);
-    background-color: rgba(255,255,255,0.1);
-}
+.arena-banner { background: #0f172a; color: white; padding: 1rem; text-align:center; }
+.arena-banner h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.05em; }
+.arena-banner span { color: #fbbf24; }
 
-@keyframes gradientBG {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
+.tabs { display: flex; justify-content: center; gap: 1rem; margin-top: 0.5rem; margin-bottom: 1rem; }
+.tab-btn { padding: 0.5rem 1rem; border-radius: 999px; font-weight: 700; cursor: pointer; text-transform: uppercase; transition: all 0.3s; }
+.tab-btn.active { background: linear-gradient(to right,#1e40af,#3b82f6,#fbbf24,#2563eb); color: white; }
 
-.arena-banner {
-    background: linear-gradient(-45deg, #1e40af, #3b82f6, #fbbf24, #2563eb);
-    background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite;
-    padding: 1rem 0;
-    text-align: center;
-    color: white;
-    font-size: 2rem;
-    font-weight: 900;
-    letter-spacing: 0.05em;
-    margin-bottom: 1rem;
-}
+.tab-view { display: none; }
+.active-tab { display: block; }
 
-.glass-card {
-    background: rgba(30, 41, 59, 0.05);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(0,0,0,0.05);
-    padding: 1rem;
-    border-radius: 1.5rem;
-    margin-bottom: 1rem;
-}
+.glass-card { background: rgba(15,23,42,0.05); border: 1px solid #e5e7eb; padding: 1rem; border-radius: 1.5rem; margin-bottom:1rem; }
 
-.editable-input {
-    background: #f3f4f6;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    padding: 0.5rem;
-    width: 100%;
-    font-weight: 700;
-    color: #111827;
-    margin-top: 0.25rem;
-}
+.editable-input { width: 100%; padding:0.5rem; border-radius:0.75rem; border:1px solid #d1d5db; background: #f9fafb; font-size:1rem; }
 
-input:focus, textarea:focus, select:focus {
-    outline: 2px solid #3b82f6;
-}
+.primary-btn { padding:0.5rem 1rem; border-radius: 1rem; font-weight:700; cursor:pointer; background: #fbbf24; color: #1e3a8a; transition: all 0.2s; }
+.primary-btn:hover { transform: scale(1.05); }
 
-button.primary-btn {
-    background-color: #fbbf24;
-    color: #1e3a8a;
-    font-weight: 700;
-    padding: 0.75rem;
-    border-radius: 1rem;
-    width: 100%;
-    text-transform: uppercase;
-    transition: transform 0.2s, background-color 0.2s;
-}
+.matches-container div { margin-bottom:0.5rem; padding:0.5rem; border-radius:0.75rem; background: #f3f4f6; display:flex; justify-content:space-between; align-items:center; }
+.matches-container input { width:3rem; text-align:center; border:1px solid #d1d5db; border-radius:0.5rem; }
 
-button.primary-btn:hover {
-    transform: scale(1.05);
-}
-
-.tab-view {
-    display: none;
-}
-
-.active-tab {
-    display: block;
-}
-
-#matchesContainer input {
-    font-size: 1rem;
-    padding: 0.5rem;
-    width: 3rem;
-    text-align: center;
-    border-radius: 0.5rem;
-    border: 1px solid #d1d5db;
-    margin: 0 0.25rem;
-}
 </style>
 </head>
-
 <body>
 
-<!-- Top Tabs -->
-<div class="vibrant-tabs">
-    <button onclick="switchTab('arena')">Arena</button>
-    <button onclick="switchTab('rules')">Rules</button>
-    <button onclick="switchTab('leaderboard')">Leaderboard</button>
-</div>
+<div class="master-bg">
 
-<!-- Arena Banner -->
-<div class="arena-banner">
-    PadelPilot Arena
-</div>
+    <!-- Top Tabs -->
+    <div class="tabs">
+        <div class="tab-btn active" onclick="switchTab('arena')">Arena</div>
+        <div class="tab-btn" onclick="switchTab('rules')">Rules</div>
+        <div class="tab-btn" onclick="switchTab('leaderboard')">Leaderboard</div>
+    </div>
 
-<div class="p-4 max-w-4xl mx-auto">
+    <!-- Arena Banner -->
+    <div class="arena-banner">
+        <h1>PadelPilot <span>ARENA</span></h1>
+    </div>
 
-    <!-- Arena Tab -->
-    <div id="view-arena" class="tab-view active-tab">
+    <div class="p-4 max-w-4xl mx-auto">
 
-        <!-- Tournament Details -->
-        <div class="glass-card">
-            <label>Tournament Name</label>
-            <input id="tournamentNameInput" type="text" class="editable-input" placeholder="Enter tournament name">
+        <!-- ARENA TAB -->
+        <div id="view-arena" class="tab-view active-tab">
 
-            <div class="mt-2 flex gap-2">
-                <div class="flex-1">
-                    <label>Location</label>
-                    <input id="locInput" type="text" value="Constantia Hub" class="editable-input">
-                </div>
-                <div class="flex-1">
-                    <label>Start Time</label>
-                    <input id="timeInput" type="text" value="09:00 AM" class="editable-input">
-                </div>
-            </div>
-
-            <div class="mt-2 flex gap-2">
-                <button onclick="copyMatchLink()" class="primary-btn">Copy Match Link</button>
-            </div>
-        </div>
-
-        <!-- Player Input & Settings -->
-        <div class="glass-card">
-            <label>Players / Teams</label>
-            <textarea id="playersInput" class="editable-input h-40" placeholder="Enter each player or team on a new line"></textarea>
-
-            <div class="grid grid-cols-2 gap-2 mt-2">
-                <div>
-                    <label>Number of Courts</label>
-                    <input id="courtsInput" type="number" value="1" min="1" class="editable-input">
-                </div>
-                <div>
-                    <label>Match Type</label>
-                    <select id="modeSelect" class="editable-input">
-                        <option value="classic">Classic 3 Point</option>
-                        <option value="team-classic">Team Classic 3 Point</option>
-                        <option value="americano">Classic Americano</option>
-                        <option value="mixed-americano">Mixed Americano</option>
-                        <option value="team-americano">Team Americano</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="mt-2">
-                <button id="generateBtn" class="primary-btn">Generate Round</button>
-            </div>
-        </div>
-
-        <!-- Matches & Leaderboard -->
-        <div id="matchesSection" class="tab-view mt-4">
             <div class="glass-card">
-                <div class="flex justify-between items-center mb-2">
-                    <h2 id="roundDisplay" class="font-bold text-lg">Round 1</h2>
-                    <button id="nextBtn" class="primary-btn" style="width:auto;">Next Round</button>
+                <label class="font-bold text-sm">Tournament Name</label>
+                <input id="tournamentInput" type="text" class="editable-input" placeholder="Enter tournament name">
+
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <div>
+                        <label class="font-bold text-sm">Location</label>
+                        <input id="locInput" type="text" class="editable-input" value="Constantia Hub">
+                    </div>
+                    <div>
+                        <label class="font-bold text-sm">Start Time</label>
+                        <input id="timeInput" type="text" class="editable-input" value="09:00 AM">
+                    </div>
                 </div>
-                <div id="matchesContainer" class="grid gap-2"></div>
-                <div id="restingContainer" class="mt-2 p-2 text-sm text-gray-600"></div>
+
+                <div class="mt-2">
+                    <label class="font-bold text-sm">Players / Teams</label>
+                    <textarea id="playersInput" class="editable-input h-40" placeholder="Enter each player or team on a new line"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <div>
+                        <label class="font-bold text-sm">Number of Courts</label>
+                        <input id="courtsInput" type="number" value="1" min="1" class="editable-input">
+                    </div>
+                    <div>
+                        <label class="font-bold text-sm">Match Type</label>
+                        <select id="modeSelect" class="editable-input">
+                            <option value="classic">Classic 3 Point</option>
+                            <option value="team-classic">Team Classic 3 Point</option>
+                            <option value="americano">Classic Americano</option>
+                            <option value="mixed-americano">Mixed Americano</option>
+                            <option value="team-americano">Team Americano</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-2 flex gap-2">
+                    <button id="savePlayersBtn" class="primary-btn">💾 Sync to Cloud</button>
+                    <button id="generateBtn" class="primary-btn">Generate Round</button>
+                    <button onclick="copyMatchLink()" class="primary-btn">🔗 Copy Match Link</button>
+                </div>
             </div>
+
+            <!-- Matches -->
+            <div id="matchesSection" class="matches-container mt-4 hidden"></div>
+
         </div>
 
-        <div id="leaderboardSection" class="tab-view mt-4 glass-card overflow-hidden">
-            <div class="p-2 font-bold uppercase text-sm text-gray-700">🏆 Standings</div>
-            <table class="w-full text-left text-sm">
+        <!-- RULES TAB -->
+        <div id="view-rules" class="tab-view p-4">
+            <h2 class="font-bold text-lg mb-4">Tournament Rules</h2>
+            <ul class="list-disc pl-5">
+                <li>Classic 3 Point: Each player teams up with every other player once. Points collected individually.</li>
+                <li>Team Classic 3 Point: Each team plays every other team once. Points collected per team.</li>
+                <li>Classic Americano: Each player teams up with every other player once. Points collected individually.</li>
+                <li>Mixed Americano: Players team with opposite sex once. Points collected individually.</li>
+                <li>Team Americano: Each team plays every other team once. Points collected per team.</li>
+            </ul>
+        </div>
+
+        <!-- LEADERBOARD TAB -->
+        <div id="view-leaderboard" class="tab-view p-4">
+            <h2 class="font-bold text-lg mb-2">🏆 Leaderboard</h2>
+            <table class="w-full text-left border border-gray-300 rounded-lg">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="p-2">#</th>
+                        <th class="p-2">Player / Team</th>
+                        <th class="p-2">Points</th>
+                        <th class="p-2">Diff</th>
+                    </tr>
+                </thead>
                 <tbody id="leaderboardBody"></tbody>
             </table>
         </div>
 
     </div>
-
-    <!-- Rules Tab -->
-    <div id="view-rules" class="tab-view glass-card p-4">
-        <h2 class="font-bold mb-2">Choose Tournament Type</h2>
-        <ul class="list-disc ml-5 text-sm space-y-1">
-            <li>Classic 3 Point – Each player teams up with every other player once. Points collected individually.</li>
-            <li>Team Classic 3 Point – Teams play every other team once. Points collected per team.</li>
-            <li>Classic Americano – Each player teams up with every other player once. Points collected individually.</li>
-            <li>Mixed Americano – Players team up with opposite sex once. Points collected individually.</li>
-            <li>Team Americano – Teams play every other team once. Points collected per team.</li>
-        </ul>
-    </div>
-
 </div>
 
 <script>
@@ -244,95 +170,84 @@ let matches = [];
 let currentRound = 1;
 let activeTournamentId = null;
 
-function switchTab(tabId) {
-    document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active-tab'));
-    const tab = document.getElementById('view-' + tabId);
-    if(tab) tab.classList.add('active-tab');
+function switchTab(tab) {
+    document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active-tab'));
+    document.getElementById('view-' + tab).classList.add('active-tab');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.tab-btn[onclick="switchTab(\''+tab+'\')"]').classList.add('active');
 }
 
-function copyMatchLink() {
-    if(!activeTournamentId) return alert("Create tournament first!");
-    const url = window.location.href.split('?')[0] + "?tournament=" + activeTournamentId;
-    navigator.clipboard.writeText(url).then(() => alert("Tournament link copied!"));
+// 48-hour tournament ID
+function createTournament(name) {
+    if(!name) return null;
+    activeTournamentId = name.replace(/\s+/g,'-').toLowerCase();
+    const expire = Date.now() + 48*60*60*1000;
+    db.ref('tournaments/'+activeTournamentId).update({ created: Date.now(), expire: expire });
+    return activeTournamentId;
 }
 
-function connectTournament(name) {
-    if(!name) return;
-    activeTournamentId = name.replace(/\s+/g, '-').toLowerCase();
-    db.ref('tournaments/' + activeTournamentId).on('value', (snapshot) => {
-        const data = snapshot.val();
-        if(data){
-            if(data.players) document.getElementById('playersInput').value = data.players;
-            if(data.location) document.getElementById('locInput').value = data.location;
-            if(data.time) document.getElementById('timeInput').value = data.time;
-            players = data.players ? data.players.split('\n').filter(p => p.trim()) : [];
-        }
-    });
-}
-
-document.getElementById('tournamentNameInput').onchange = () => {
-    const name = document.getElementById('tournamentNameInput').value;
-    if(!name) return;
-    connectTournament(name);
+document.getElementById('savePlayersBtn').onclick = function() {
+    const name = document.getElementById('tournamentInput').value.trim();
+    if(!name) return alert("Enter tournament name!");
+    createTournament(name);
+    const list = document.getElementById('playersInput').value;
+    const loc = document.getElementById('locInput').value;
+    const time = document.getElementById('timeInput').value;
+    db.ref('tournaments/' + activeTournamentId).update({ players:list, location:loc, time:time })
+      .then(()=>alert("Tournament saved for 48 hours! 🔒"));
 };
 
 document.getElementById('generateBtn').onclick = () => {
-    const raw = document.getElementById('playersInput').value.split('\n').filter(p => p.trim());
-    if(raw.length < 4) return alert("Add at least 4 players/teams!");
-    players = raw; matches = []; currentRound = 1;
+    const raw = document.getElementById('playersInput').value.split('\n').filter(p=>p.trim());
+    if(raw.length<4) return alert("Add 4+ players!");
+    players = raw; matches=[]; currentRound=1;
     startRound();
 };
 
-document.getElementById('nextBtn').onclick = () => { currentRound++; startRound(); };
-
 function startRound() {
     const courts = parseInt(document.getElementById('courtsInput').value) || 1;
-    const shuffled = [...players].sort(() => 0.5 - Math.random());
+    const shuffled = [...players].sort(()=>0.5-Math.random());
     const newMatches = [];
-    for(let i = 0; i < courts * 4 && i + 3 < shuffled.length; i += 4){
-        newMatches.push({ id: Date.now()+i, court: (i/4)+1, p: [shuffled[i], shuffled[i+1], shuffled[i+2], shuffled[i+3]], sA:'', sB:'' });
+    for(let i=0;i<courts*4 && i+3<shuffled.length;i+=4){
+        newMatches.push({id:Date.now()+i, court:(i/4)+1, p:[shuffled[i],shuffled[i+1],shuffled[i+2],shuffled[i+3]], sA:'', sB:''});
     }
     const resting = shuffled.slice(newMatches.length*4);
-    document.getElementById('restingContainer').textContent = resting.length ? `Resting: ${resting.join(', ')}` : 'Full court!';
-    document.getElementById('roundDisplay').textContent = `Round ${currentRound}`;
-    matches = [...matches, ...newMatches];
-    render(); updateBoard();
+    renderMatches(newMatches, resting);
+    matches=[...matches,...newMatches];
+    currentRound++;
+    updateLeaderboard();
 }
 
-function render(){
-    const container = document.getElementById('matchesContainer');
-    container.innerHTML = '';
-    const count = parseInt(document.getElementById('courtsInput').value) || 1;
-    matches.slice(-count).forEach(m => {
-        const div = document.createElement('div');
-        div.className = 'glass-card flex justify-between items-center mb-2';
-        div.innerHTML = `
-            <div class="w-1/3 font-bold text-sm">${m.p[0]} & ${m.p[1]}</div>
-            <div class="flex">
-                <input type="number" oninput="upd(${m.id},'A',this.value)">
-                <input type="number" oninput="upd(${m.id},'B',this.value)">
-            </div>
-            <div class="w-1/3 font-bold text-sm text-right">${m.p[2]} & ${m.p[3]}</div>
+function renderMatches(newMatches, resting){
+    const container = document.getElementById('matchesSection');
+    container.innerHTML='';
+    newMatches.forEach(m=>{
+        const div=document.createElement('div');
+        div.innerHTML=`
+        <div>Court ${m.court}: ${m.p[0]} & ${m.p[1]} vs ${m.p[2]} & ${m.p[3]}</div>
+        <input type="number" placeholder="Score A" oninput="updateScore(${m.id},'A',this.value)">
+        <input type="number" placeholder="Score B" oninput="updateScore(${m.id},'B',this.value)">
         `;
         container.appendChild(div);
     });
+    if(resting.length) container.innerHTML+='<div>Resting: '+resting.join(', ')+'</div>';
+    container.classList.remove('hidden');
 }
 
-function upd(id, team, val){
-    const m = matches.find(x => x.id === id);
-    if(team === 'A') m.sA = val; else m.sB = val;
-    updateBoard();
+function updateScore(id,team,val){
+    const m=matches.find(x=>x.id===id);
+    if(team==='A') m.sA=val; else m.sB=val;
+    updateLeaderboard();
 }
 
-function updateBoard(){
-    let l = {}; players.forEach(p=> l[p]={pts:0,diff:0});
-    const mode = document.getElementById('modeSelect').value;
+function updateLeaderboard(){
+    const mode=document.getElementById('modeSelect').value;
+    let l={}; players.forEach(p=>l[p]={pts:0,diff:0});
     matches.forEach(m=>{
-        const a = parseInt(m.sA) || 0;
-        const b = parseInt(m.sB) || 0;
-        if(m.sA === '' || m.sB === '') return;
-        m.p.slice(0,2).forEach(p => l[p].diff += (a-b));
-        m.p.slice(2,4).forEach(p => l[p].diff += (b-a));
+        const a=parseInt(m.sA)||0, b=parseInt(m.sB)||0;
+        if(m.sA===''||m.sB==='') return;
+        m.p.slice(0,2).forEach(p=>l[p].diff+=a-b);
+        m.p.slice(2,4).forEach(p=>l[p].diff+=b-a);
         if(mode.includes('classic')){
             if(a>b) m.p.slice(0,2).forEach(p=>l[p].pts+=3);
             else if(b>a) m.p.slice(2,4).forEach(p=>l[p].pts+=3);
@@ -342,36 +257,32 @@ function updateBoard(){
             m.p.slice(2,4).forEach(p=>l[p].pts+=b);
         }
     });
-    const sorted = Object.entries(l).sort((a,b)=>b[1].pts-a[1].pts||b[1].diff-a[1].diff);
-    const tbody = document.getElementById('leaderboardBody');
-    tbody.innerHTML = sorted.map(([n,d],i)=>`
-        <tr>
-            <td class="p-1">${i+1}</td>
-            <td class="p-1 text-sm font-bold">${n}</td>
-            <td class="p-1 font-bold">${d.pts}</td>
-            <td class="p-1 text-sm ${d.diff>=0?'text-green-600':'text-red-600'}">${d.diff>0?'+':''}${d.diff}</td>
-        </tr>
-    `).join('');
+    const sorted=Object.entries(l).sort((a,b)=>b[1].pts-a[1].pts||b[1].diff-a[1].diff);
+    document.getElementById('leaderboardBody').innerHTML=sorted.map(([n,d],i)=>`<tr><td class="p-2">${i+1}</td><td class="p-2">${n}</td><td class="p-2">${d.pts}</td><td class="p-2">${d.diff>0?'+':''}${d.diff}</td></tr>`).join('');
 }
 
-// Save tournament data to Firebase every change
-document.getElementById('playersInput').oninput = saveTournament;
-document.getElementById('locInput').oninput = saveTournament;
-document.getElementById('timeInput').oninput = saveTournament;
+function copyMatchLink(){
+    if(!activeTournamentId) return alert("Create a tournament first!");
+    const url=window.location.href.split('?')[0]+'?t='+activeTournamentId;
+    navigator.clipboard.writeText(url).then(()=>alert("Match link copied!"));
+}
 
-function saveTournament(){
-    if(!activeTournamentId) return;
-    const list = document.getElementById('playersInput').value;
-    const loc = document.getElementById('locInput').value;
-    const time = document.getElementById('timeInput').value;
-    db.ref('tournaments/' + activeTournamentId).set({
-        players: list,
-        location: loc,
-        time: time,
-        timestamp: Date.now()
+// On page load: restore from URL if available
+const params=new URLSearchParams(window.location.search);
+const tName=params.get('t');
+if(tName){
+    activeTournamentId=tName;
+    document.getElementById('tournamentInput').value=tName;
+    db.ref('tournaments/'+activeTournamentId).once('value').then(snapshot=>{
+        const data=snapshot.val();
+        if(data){
+            if(data.players) document.getElementById('playersInput').value=data.players;
+            if(data.location) document.getElementById('locInput').value=data.location;
+            if(data.time) document.getElementById('timeInput').value=data.time;
+        }
     });
 }
-
 </script>
+
 </body>
 </html>
