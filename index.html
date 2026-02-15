@@ -3,163 +3,129 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PadelPilot Arena</title>
+<title>PadelPilot</title>
+
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&display=swap');
-body { background-color: #0f172a; color: white; margin: 0; font-family: 'Space Grotesk', sans-serif; padding-bottom: 100px; }
-.master-bg { min-height:100vh; }
-.vibrant-banner { background: linear-gradient(-45deg, #1e40af, #3b82f6, #fbbf24, #2563eb); background-size:400% 400%; animation:gradientBG 15s ease infinite; padding:1rem; text-align:center; font-weight:bold; color:white; }
-@keyframes gradientBG { 0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%} }
-.glass-card { background: rgba(30,41,59,0.7); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.1); }
-.editable-pass-input { background: transparent; border: none; font-weight:700; color:white; outline:none; width:100%; }
-.editable-pass-input:focus { background: rgba(255,255,255,0.05); border-radius:4px; }
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&display=swap');
+
+    body {
+        margin: 0; font-family: 'Space Grotesk', sans-serif;
+        background: #0f172a; color: white;
+    }
+
+    .top-banner {
+        background: linear-gradient(-45deg, #1e40af, #3b82f6, #fbbf24, #2563eb);
+        background-size: 400% 400%; animation: gradientBG 15s ease infinite;
+        text-align: center; padding: 1rem 0;
+        font-size: 2rem; font-weight: 700;
+    }
+    @keyframes gradientBG { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+    .top-tabs {
+        display: flex; justify-content: center; gap: 2rem; background: #1e293b;
+        padding: 0.5rem 0; font-weight: 600;
+    }
+    .top-tab { cursor: pointer; transition: 0.3s; padding: 0.3rem 0.5rem; border-b-2 border-transparent; }
+    .top-tab.active { border-bottom: 3px solid #fbbf24; color: #fbbf24; }
+
+    .page-container { padding: 1rem; max-width: 900px; margin: auto; background: white; color: black; border-radius: 1rem; margin-top: 1rem; }
+
+    .arena-banner { background: #2563eb; color: white; text-align: center; padding: 0.5rem 0; margin-bottom: 1rem; font-weight: bold; border-radius: 0.5rem; }
+
+    .tab-view { display: none; }
+    .tab-view.active { display: block; }
+
+    .match-card { background: #e5e7eb; padding: 1rem; margin-bottom: 0.8rem; border-radius: 1rem; font-weight: 600; font-size: 1.1rem; display: flex; justify-content: space-between; }
+
+    .rules-section, .player-input-section { margin-bottom: 1rem; }
+    .rules-section select, .player-input-section input { width: 100%; padding: 0.5rem; border-radius: 0.5rem; border: 1px solid #ccc; }
 </style>
 </head>
 <body>
-<div class="master-bg">
-<div class="vibrant-banner rounded-b-[2rem] text-3xl uppercase">THE ARENA</div>
 
-<div class="p-4 max-w-4xl mx-auto space-y-6">
-    <div class="glass-card p-4 rounded-xl">
-        <div class="flex justify-between mb-4 gap-4">
-            <div class="w-1/2">
-                <p class="text-xs text-yellow-400 uppercase">📍 Location</p>
-                <input id="locInput" type="text" value="Constantia Hub" class="editable-pass-input text-lg">
-            </div>
-            <div class="w-1/2 text-right">
-                <p class="text-xs text-yellow-400 uppercase">⏰ Start Time</p>
-                <input id="timeInput" type="text" value="09:00 AM" class="editable-pass-input text-lg">
-            </div>
-        </div>
+<div class="top-banner">PadelPilot</div>
 
-        <div class="flex gap-2 mb-4">
-            <button onclick="handleCheckIn()" id="checkInBtn" class="bg-green-500/20 text-green-400 font-black py-2 px-3 rounded-xl">Confirm Arrival ✅</button>
-            <button onclick="copyMatchLink()" class="bg-blue-500/20 text-blue-400 font-black py-2 px-3 rounded-xl">🔗</button>
-        </div>
+<div class="top-tabs">
+    <div class="top-tab active" onclick="switchPage('arena')">Arena</div>
+    <div class="top-tab" onclick="switchPage('lab')">Lab</div>
+    <div class="top-tab" onclick="switchPage('hub')">Hub</div>
+</div>
 
-        <div class="mb-4">
-            <input id="meetNameInput" type="text" placeholder="Meet Name" class="bg-black/50 text-white p-2 rounded w-full mb-2">
-            <button id="connectMeetBtn" class="bg-blue-600 px-3 py-1 rounded text-xs font-bold uppercase">Connect</button>
-        </div>
+<div class="page-container">
 
-        <textarea id="playersInput" placeholder="Enter players, one per line" class="w-full p-3 bg-black/50 rounded text-white mb-2 h-40"></textarea>
-        <button id="savePlayersBtn" class="w-full bg-green-600 text-white py-2 rounded mb-2">💾 Sync to Cloud</button>
+    <!-- Arena Page -->
+    <div id="arena" class="tab-view active">
+        <div class="arena-banner">THE ARENA</div>
 
-        <div class="flex gap-2 mb-2">
-            <input id="courtsInput" type="number" value="1" min="1" class="bg-black/50 p-2 rounded w-1/2 text-center">
-            <select id="modeSelect" class="bg-black/50 p-2 rounded w-1/2">
-                <option value="classic">Classic</option>
-                <option value="americano">Americano</option>
-                <option value="noRepeat">No Repeat Partners</option>
+        <!-- Rules / Mode Section -->
+        <div class="rules-section">
+            <label for="tournamentType" class="font-bold">Choose Tournament Type:</label>
+            <select id="tournamentType">
+                <optgroup label="Classic">
+                    <option value="classic3">Classic 3 Point - Each player teams with every other player once. Points individually.</option>
+                    <option value="teamClassic3">Team Classic 3 Point - Each team plays all others once. Points per team.</option>
+                </optgroup>
+                <optgroup label="Americano">
+                    <option value="classicAmericano">Classic Americano - Each player teams with every other player once. Points individually.</option>
+                    <option value="mixedAmericano">Mixed Americano - Players team with opposite sex once. Points individually.</option>
+                    <option value="teamAmericano">Team Americano - Teams play all others once. Points per team.</option>
+                </optgroup>
             </select>
         </div>
 
-        <button id="generateBtn" class="w-full bg-yellow-400 text-blue-900 font-black py-2 rounded">Generate Round</button>
+        <!-- Player / Team Input -->
+        <div class="player-input-section">
+            <label for="playerInput" class="font-bold">Add Players or Teams:</label>
+            <input type="text" id="playerInput" placeholder="Enter comma-separated names or team names">
+        </div>
+
+        <!-- Match-Up Section -->
+        <div id="matchesContainer">
+            <!-- Match cards will be generated here -->
+        </div>
+
     </div>
 
-    <div id="matchesSection" class="hidden space-y-2">
-        <h2 class="text-yellow-400 font-bold text-xl" id="roundDisplay">Round 1</h2>
-        <div id="matchesContainer" class="space-y-2"></div>
-        <div id="restingContainer" class="text-yellow-300 text-xs italic font-bold mt-2"></div>
-        <button id="nextBtn" class="bg-green-500 px-3 py-1 rounded text-xs font-bold">Next Round</button>
+    <!-- Lab Page -->
+    <div id="lab" class="tab-view">
+        <h2>Trainer Lab</h2>
+        <p>Lab functionality will appear here.</p>
     </div>
-</div>
+
+    <!-- Hub Page -->
+    <div id="hub" class="tab-view">
+        <h2>Hub</h2>
+        <p>Hub functionality will appear here.</p>
+    </div>
+
 </div>
 
 <script>
-const firebaseConfig = {
-    apiKey:"AiZaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
-    authDomain:"padelpilot-4531f.firebaseapp.com",
-    databaseURL:"https://padelpilot-4531f-default-rtdb.firebaseio.com",
-    projectId:"padelpilot-4531f",
-    storageBucket:"padelpilot-4531f.appspot.com",
-    messagingSenderId:"866905934997",
-    appId:"1:866905934997:web:97cb8ebc4ed35f9e41f9c"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+    // Firebase config placeholder (keep existing logic)
+    const firebaseConfig = {
+        apiKey: "AiZaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
+        authDomain: "padelpilot-4531f.firebaseapp.com",
+        databaseURL: "https://padelpilot-4531f-default-rtdb.firebaseio.com",
+        projectId: "padelpilot-4531f",
+        storageBucket: "padelpilot-4531f.appspot.com",
+        messagingSenderId: "866905934997",
+        appId: "1:866905934997:web:97cb8ebc4ed35f9e41f9c",
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-let players=[], matches=[], currentRound=1;
-let pastPairs = new Set();
-let activeMeetId = new URLSearchParams(window.location.search).get('meet');
+    function switchPage(pageId) {
+        document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
 
-function handleCheckIn(){ const btn=document.getElementById('checkInBtn'); btn.innerText="PLAYER ON-SITE ✅"; btn.classList.replace('bg-green-500/20','bg-slate-700'); btn.classList.replace('text-green-400','text-white'); }
-function copyMatchLink(){ if(!activeMeetId){alert("Connect to a Meet Name first!"); return;} navigator.clipboard.writeText(window.location.href.split('?')[0]+"?meet="+activeMeetId).then(()=>alert("Link Copied!")); }
-document.getElementById('connectMeetBtn').onclick=()=>{ const name=document.getElementById('meetNameInput').value; if(!name) return alert("Enter a meet name!"); activeMeetId=name.replace(/\s+/g,'-').toLowerCase(); db.ref('meets/'+activeMeetId).once('value').then(snap=>{ const data=snap.val(); if(data&&data.players) document.getElementById('playersInput').value=data.players; }); };
-document.getElementById('savePlayersBtn').onclick=()=>{ if(!activeMeetId) return alert("Connect to a Meet Name first!"); db.ref('meets/'+activeMeetId).update({ players:document.getElementById('playersInput').value, location:document.getElementById('locInput').value, time:document.getElementById('timeInput').value }).then(()=>alert("Cloud Sync Successful!")); };
-
-document.getElementById('generateBtn').onclick=()=>{ 
-    const raw = document.getElementById('playersInput').value.split('\n').map(p=>p.trim()).filter(Boolean);
-    if(raw.length<4){ alert("Add 4+ players!"); return; }
-    players=raw; matches=[]; currentRound=1;
-    generateRound();
-};
-document.getElementById('nextBtn').onclick=()=>{ currentRound++; generateRound(); };
-
-function generateRound(){
-    const courts = parseInt(document.getElementById('courtsInput').value)||1;
-    const mode = document.getElementById('modeSelect').value;
-    let shuffled = [...players].sort(()=>0.5-Math.random());
-    let newMatches=[];
-    
-    if(mode==='noRepeat'){
-        // Ensure no repeat partners
-        let attempts = 0;
-        while(attempts<1000){
-            let tempMatches=[];
-            let tempPairs = new Set();
-            let ok = true;
-            for(let i=0;i<Math.floor(shuffled.length/4)*4;i+=4){
-                const a=[shuffled[i],shuffled[i+1]].sort().join('|');
-                const b=[shuffled[i+2],shuffled[i+3]].sort().join('|');
-                if(pastPairs.has(a) || pastPairs.has(b)) { ok=false; break; }
-                tempPairs.add(a); tempPairs.add(b);
-                tempMatches.push({court:(i/4)+1,p:[shuffled[i],shuffled[i+1],shuffled[i+2],shuffled[i+3]],sA:'',sB:''});
-            }
-            if(ok){ newMatches=tempMatches; tempPairs.forEach(p=>pastPairs.add(p)); break; }
-            shuffled.sort(()=>0.5-Math.random()); attempts++;
-        }
-    } else {
-        for(let i=0;i<courts*4 && i+3<shuffled.length;i+=4){
-            newMatches.push({court:(i/4)+1,p:[shuffled[i],shuffled[i+1],shuffled[i+2],shuffled[i+3]],sA:'',sB:''});
-        }
+        document.querySelectorAll('.top-tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.top-tab[onclick="switchPage('${pageId}')"]`).classList.add('active');
     }
-
-    const resting=shuffled.slice(newMatches.length*4);
-    document.getElementById('restingContainer').textContent=resting.length?`Resting: ${resting.join(', ')}`:'Full court engagement!';
-    document.getElementById('roundDisplay').textContent=`Round ${currentRound}`;
-    matches=[...matches,...newMatches];
-    renderMatches();
-}
-
-function renderMatches(){
-    const container=document.getElementById('matchesContainer');
-    container.innerHTML='';
-    matches.slice(-parseInt(document.getElementById('courtsInput').value)).forEach(m=>{
-        const div=document.createElement('div');
-        div.className='bg-black/60 p-4 rounded-xl flex justify-between items-center border border-white/10';
-        div.innerHTML=`
-            <div class="text-yellow-400 text-xs font-bold w-1/3">Court ${m.court}<br>${m.p[0]} & ${m.p[1]}</div>
-            <div class="flex gap-2">
-                <input type="number" oninput="updateScore(${m.court},'A',this.value)" class="w-10 bg-gray-900 rounded p-1 text-center text-white border border-white/10">
-                <input type="number" oninput="updateScore(${m.court},'B',this.value)" class="w-10 bg-gray-900 rounded p-1 text-center text-white border border-white/10">
-            </div>
-            <div class="text-blue-400 text-xs font-bold w-1/3 text-right">Court ${m.court}<br>${m.p[2]} & ${m.p[3]}</div>
-        `;
-        container.appendChild(div);
-    });
-    document.getElementById('matchesSection').classList.remove('hidden');
-}
-
-function updateScore(court,team,val){ 
-    const m = matches.find(x=>x.court===court); if(!m) return; 
-    if(team==='A') m.sA=val; else m.sB=val;
-}
 </script>
+
 </body>
 </html>
