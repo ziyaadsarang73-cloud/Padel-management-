@@ -3,46 +3,99 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PadelPilot</title>
+<title>PadelPilot Arena</title>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&display=swap');
 
-    body {
-        margin: 0; font-family: 'Space Grotesk', sans-serif;
-        background: #0f172a; color: white;
-    }
+body {
+    margin: 0;
+    font-family: 'Space Grotesk', sans-serif;
+    background: #0f172a;
+    color: white;
+}
 
-    .top-banner {
-        background: linear-gradient(-45deg, #1e40af, #3b82f6, #fbbf24, #2563eb);
-        background-size: 400% 400%; animation: gradientBG 15s ease infinite;
-        text-align: center; padding: 1rem 0;
-        font-size: 2rem; font-weight: 700;
-    }
-    @keyframes gradientBG { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+.top-banner {
+    background: linear-gradient(-45deg, #1e40af, #3b82f6, #fbbf24, #2563eb);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    text-align: center;
+    padding: 1rem 0;
+    font-size: 2rem;
+    font-weight: 700;
+}
 
-    .top-tabs {
-        display: flex; justify-content: center; gap: 2rem; background: #1e293b;
-        padding: 0.5rem 0; font-weight: 600;
-    }
-    .top-tab { cursor: pointer; transition: 0.3s; padding: 0.3rem 0.5rem; border-b-2 border-transparent; }
-    .top-tab.active { border-bottom: 3px solid #fbbf24; color: #fbbf24; }
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
 
-    .page-container { padding: 1rem; max-width: 900px; margin: auto; background: white; color: black; border-radius: 1rem; margin-top: 1rem; }
+.top-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    background: #1e293b;
+    padding: 0.5rem 0;
+    font-weight: 600;
+}
 
-    .arena-banner { background: #2563eb; color: white; text-align: center; padding: 0.5rem 0; margin-bottom: 1rem; font-weight: bold; border-radius: 0.5rem; }
+.top-tab { 
+    cursor: pointer; 
+    transition: 0.3s; 
+    padding: 0.3rem 0.5rem; 
+    border-bottom: 2px solid transparent; 
+}
 
-    .tab-view { display: none; }
-    .tab-view.active { display: block; }
+.top-tab.active { 
+    border-bottom: 3px solid #fbbf24; 
+    color: #fbbf24; 
+}
 
-    .match-card { background: #e5e7eb; padding: 1rem; margin-bottom: 0.8rem; border-radius: 1rem; font-weight: 600; font-size: 1.1rem; display: flex; justify-content: space-between; }
+.page-container {
+    padding: 1rem; 
+    max-width: 900px; 
+    margin: 1rem auto; 
+    background: white; 
+    color: black; 
+    border-radius: 1rem;
+}
 
-    .rules-section, .player-input-section { margin-bottom: 1rem; }
-    .rules-section select, .player-input-section input { width: 100%; padding: 0.5rem; border-radius: 0.5rem; border: 1px solid #ccc; }
+.arena-banner {
+    background: #2563eb; 
+    color: white; 
+    text-align: center; 
+    padding: 0.5rem 0; 
+    margin-bottom: 1rem; 
+    font-weight: bold; 
+    border-radius: 0.5rem;
+}
+
+.tab-view { display: none; }
+.tab-view.active { display: block; }
+
+.rules-section, .player-input-section { margin-bottom: 1rem; }
+.rules-section select, .player-input-section input { width: 100%; padding: 0.5rem; border-radius: 0.5rem; border: 1px solid #ccc; font-size: 1rem; }
+
+.match-card { 
+    background: #f3f4f6; 
+    padding: 1rem; 
+    margin-bottom: 0.8rem; 
+    border-radius: 1rem; 
+    font-weight: 700; 
+    font-size: 1.2rem; 
+    display: flex; 
+    justify-content: space-between; 
+}
+
+input[type=number] { width: 3rem; padding: 0.3rem; border-radius: 0.5rem; border: 1px solid #ccc; text-align: center; font-weight: bold; }
 </style>
 </head>
 <body>
@@ -79,13 +132,34 @@
 
         <!-- Player / Team Input -->
         <div class="player-input-section">
-            <label for="playerInput" class="font-bold">Add Players or Teams:</label>
+            <label class="font-bold">Add Players or Teams:</label>
             <input type="text" id="playerInput" placeholder="Enter comma-separated names or team names">
         </div>
 
-        <!-- Match-Up Section -->
+        <!-- Match-Up Container -->
         <div id="matchesContainer">
-            <!-- Match cards will be generated here -->
+            <!-- Generated matches will appear here -->
+        </div>
+
+        <!-- Controls -->
+        <div class="flex gap-2 mt-4">
+            <button id="generateBtn" class="bg-yellow-400 text-blue-900 font-black py-3 px-4 rounded-xl hover:scale-105 transition-transform">Generate Round</button>
+            <button onclick="copyMatchLink()" class="bg-blue-500 text-white font-bold py-3 px-4 rounded-xl">Copy Match Link</button>
+        </div>
+
+        <div class="mt-4">
+            <label for="courtsInput" class="font-bold">Courts:</label>
+            <input type="number" id="courtsInput" value="1" min="1">
+        </div>
+
+        <div class="mt-4" id="restingContainer" class="text-sm font-bold italic"></div>
+
+        <div class="mt-4 bg-gray-200 p-2 rounded-lg">
+            <h3 class="font-bold">Leaderboard</h3>
+            <table class="w-full text-left text-sm">
+                <tbody id="leaderboardBody"></tbody>
+            </table>
+            <button onclick="downloadResults()" class="mt-2 bg-gray-400 text-black px-3 py-1 rounded">Export PNG</button>
         </div>
 
     </div>
@@ -93,38 +167,81 @@
     <!-- Lab Page -->
     <div id="lab" class="tab-view">
         <h2>Trainer Lab</h2>
-        <p>Lab functionality will appear here.</p>
+        <p>Lab functionality coming soon.</p>
     </div>
 
     <!-- Hub Page -->
     <div id="hub" class="tab-view">
         <h2>Hub</h2>
-        <p>Hub functionality will appear here.</p>
+        <p>Hub functionality coming soon.</p>
     </div>
 
 </div>
 
 <script>
-    // Firebase config placeholder (keep existing logic)
-    const firebaseConfig = {
-        apiKey: "AiZaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
-        authDomain: "padelpilot-4531f.firebaseapp.com",
-        databaseURL: "https://padelpilot-4531f-default-rtdb.firebaseio.com",
-        projectId: "padelpilot-4531f",
-        storageBucket: "padelpilot-4531f.appspot.com",
-        messagingSenderId: "866905934997",
-        appId: "1:866905934997:web:97cb8ebc4ed35f9e41f9c",
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+const firebaseConfig = {
+    apiKey: "AiZaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
+    authDomain: "padelpilot-4531f.firebaseapp.com",
+    databaseURL: "https://padelpilot-4531f-default-rtdb.firebaseio.com",
+    projectId: "padelpilot-4531f",
+    storageBucket: "padelpilot-4531f.appspot.com",
+    messagingSenderId: "866905934997",
+    appId: "1:866905934997:web:97cb8ebc4ed35f9e41f9c",
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-    function switchPage(pageId) {
-        document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
+let players = [], matches = [], currentRound = 1;
+let activeMeetId = new URLSearchParams(window.location.search).get('meet');
 
-        document.querySelectorAll('.top-tab').forEach(t => t.classList.remove('active'));
-        document.querySelector(`.top-tab[onclick="switchPage('${pageId}')"]`).classList.add('active');
+function switchPage(pageId){
+    document.querySelectorAll('.tab-view').forEach(t => t.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+    document.querySelectorAll('.top-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.top-tab[onclick="switchPage('${pageId}')"]`).classList.add('active');
+}
+
+// Copy match link
+function copyMatchLink() {
+    if (!activeMeetId) return alert("Connect to a Meet Name first!");
+    const url = window.location.href.split('?')[0] + "?meet=" + activeMeetId;
+    navigator.clipboard.writeText(url).then(() => alert("Link Copied!"));
+}
+
+// Firebase connect / sync logic (kept from original)
+function connectToMeet(id){
+    if(!id) return;
+    activeMeetId = id.replace(/\s+/g,'-').toLowerCase();
+    db.ref('meets/' + activeMeetId).on('value', snapshot => {
+        const data = snapshot.val();
+        if(data){
+            if(data.players) document.getElementById('playerInput').value = data.players;
+            players = data.players ? data.players.split(',').map(p=>p.trim()) : [];
+        }
+    });
+}
+
+// Example placeholder for generate round
+document.getElementById('generateBtn').onclick = ()=>{
+    const raw = document.getElementById('playerInput').value.split(',').map(p=>p.trim()).filter(p=>p);
+    if(raw.length < 2) return alert("Add 2+ players or teams!");
+    players = raw; matches = []; currentRound = 1;
+
+    const courts = parseInt(document.getElementById('courtsInput').value) || 1;
+    const container = document.getElementById('matchesContainer');
+    container.innerHTML = '';
+
+    for(let i=0;i<players.length;i+=2){
+        const match = document.createElement('div');
+        match.className = 'match-card';
+        match.innerHTML = `<div>${players[i] || ''} & ${players[i+1] || ''}</div>
+                           <div><input type="number" placeholder="A"> - <input type="number" placeholder="B"></div>`;
+        container.appendChild(match);
     }
+};
+
+// Placeholder leaderboard download
+function downloadResults(){ alert("Export PNG functionality goes here."); }
 </script>
 
 </body>
