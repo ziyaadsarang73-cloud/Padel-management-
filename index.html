@@ -44,7 +44,7 @@ body{background:#ffffff;font-family:'Space Grotesk',sans-serif;margin:0}
 
 <body>
 
-<div class="top-tabs">
+<div class="top-tabs" id="topTabs">
 <a href="index.html" class="active">Arena</a>
 <a href="leaderboard.html">Leaderboard</a>
 <a href="rules.html">Rules</a>
@@ -211,13 +211,13 @@ function renderMatches(restingPlayers=[]){
     let card=document.createElement('div');
     card.className='match-card';
     card.innerHTML=`
-      <div class="team-block">${m.teamA[0]}<br>${m.teamA[1]}</div>
+      <div class="team-block">\( {m.teamA[0]}<br> \){m.teamA[1]}</div>
       <div class="score-row">
-        <input type="number" value="${m.scoreA}" oninput="updateScore(${i},'A',this.value)">
+        <input type="number" value="\( {m.scoreA}" oninput="updateScore( \){i},'A',this.value)">
         <span>vs</span>
-        <input type="number" value="${m.scoreB}" oninput="updateScore(${i},'B',this.value)">
+        <input type="number" value="\( {m.scoreB}" oninput="updateScore( \){i},'B',this.value)">
       </div>
-      <div class="team-block text-right">${m.teamB[0]}<br>${m.teamB[1]}</div>
+      <div class="team-block text-right">\( {m.teamB[0]}<br> \){m.teamB[1]}</div>
     `;
     container.appendChild(card);
   });
@@ -237,15 +237,38 @@ function updateScore(index,side,val){
   db.ref('arena/'+meetId+'/matches').set(currentMatches);
 }
 
-/* --- TAB FIX: preserve ?meet= when switching tabs --- */
-document.querySelectorAll('.top-tabs a').forEach(link => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const meetParam = urlParams.get('meet');
-    if(meetParam){
-        const hrefPage = link.getAttribute('href').split('?')[0];
-        link.setAttribute('href', hrefPage + '?meet=' + meetParam);
+/* ────────────────────────────────────────────────
+   FIXED TAB NAVIGATION – preserve ?meet= parameter
+   ──────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const meet = urlParams.get('meet');
+
+  if (!meet) return;
+
+  const tabs = document.querySelectorAll('#topTabs a');
+
+  tabs.forEach(function(link) {
+    const originalHref = link.getAttribute('href');
+    const base = originalHref.split('?')[0];
+    const alreadyHasQuery = originalHref.includes('?');
+
+    // Only modify links that are not the current active one
+    if (!link.classList.contains('active')) {
+      const newHref = base + (alreadyHasQuery ? '&' : '?') + 'meet=' + meet;
+      link.setAttribute('href', newHref);
     }
+
+    // Prevent default only on non-active tabs (optional smoothness)
+    link.addEventListener('click', function(e) {
+      if (!link.classList.contains('active')) {
+        // We could do e.preventDefault() + location.href = ... but
+        // letting the browser handle it is usually fine and simpler
+      }
+    });
+  });
 });
+
 </script>
 
 </body>
