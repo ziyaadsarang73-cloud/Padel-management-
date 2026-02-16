@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PadelPilot Leaderboard</title>
+
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
@@ -32,24 +32,32 @@ color:#0f172a;text-align:center;padding:26px;
 font-size:32px;font-weight:900;letter-spacing:.15em;
 }
 
-/* Leaderboard Table */
-.container{max-width:5xl;margin:0 auto;padding:16px;}
-table{width:100%;border-collapse:collapse;font-size:0.95rem;}
-th, td{text-align:center;padding:12px 8px;}
-th{font-weight:600;opacity:0.8;font-size:0.88rem;}
-tr{border-bottom:1px solid rgba(0,0,0,0.08);}
-tr:last-child{border-bottom:none;}
-.rank-1{color:#ffd700;}
-.rank-2{color:#c0c0c0;}
-.rank-3{color:#cd7f32;}
-.crown-emoji{font-size:1.1rem;margin-right:4px;}
-.points{font-weight:700;color:#16a34a;}
-.diff-positive{color:#16a34a;}
+/* Leaderboard Card UI */
+.container{max-width:420px;margin:40px auto;background:#1a1a2e;border-radius:24px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.4);color:white}
+.header{padding:20px;text-align:center;background:linear-gradient(135deg,#1e1e3a,#2a1e4a)}
+.title{font-size:1.2rem;font-weight:700}
+
+.winner-banner{padding:20px;text-align:center;background:rgba(40,167,69,.12)}
+.winner-title{font-size:1.3rem;font-weight:700;color:#00ff9d}
+
+.stats-row{display:flex;justify-content:center;gap:20px;padding:20px}
+.player-card{text-align:center;width:96px}
+.player-initials{
+width:64px;height:64px;border-radius:50%;
+display:flex;align-items:center;justify-content:center;
+font-size:1.5rem;font-weight:bold;margin:0 auto 8px;
+background:#333366;border:3px solid gold
+}
+
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px 8px;text-align:center}
+tr{border-bottom:1px solid rgba(255,255,255,.08)}
+.points{color:#00ff9d;font-weight:700}
 </style>
 </head>
+
 <body>
 
-<!-- TOP NAV -->
 <div class="top-tabs">
 <a href="index.html">Arena</a>
 <a href="leaderboard.html" class="active">Leaderboard</a>
@@ -60,26 +68,32 @@ tr:last-child{border-bottom:none;}
 <div class="leaderboard-banner">LEADERBOARD</div>
 
 <div class="container">
-  <table>
-    <thead>
-      <tr>
-        <th></th>
-        <th>Players</th>
-        <th>W</th>
-        <th>D</th>
-        <th>L</th>
-        <th>P</th>
-        <th>+/-</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Dynamic leaderboard rows go here -->
-    </tbody>
-  </table>
+<div class="header">
+<div class="title">Tournament Standings</div>
+</div>
+
+<div id="winnerSection"></div>
+
+<div id="podium" class="stats-row"></div>
+
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Player</th>
+<th>W</th>
+<th>L</th>
+<th>P</th>
+<th>+/-</th>
+</tr>
+</thead>
+<tbody id="leaderboardTable"></tbody>
+</table>
+</div>
 </div>
 
 <script>
-// Firebase config
 const firebaseConfig={
 apiKey:"AIzaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
 authDomain:"padelpilot-4531f.firebaseapp.com",
@@ -92,77 +106,104 @@ appId:"1:866905934997:web:97cb8ebc4ed35f9e41f9c"
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
-// Get tournament ID from URL
-const urlParams = new URLSearchParams(window.location.search);
-const meetId = urlParams.get('meet');
-if(!meetId) {
-  alert("No tournament selected. Go to Arena and share the tournament link.");
-}
+/* LOAD LATEST TOURNAMENT */
+db.ref('arena').orderByChild('timestamp').limitToLast(1).once('value',snap=>{
+const latest=snap.val();
+if(!latest) return;
 
-// Fetch data from Firebase
-db.ref('arena/' + meetId).on('value', snapshot => {
-  const data = snapshot.val();
-  if(!data) return;
+const meetId=Object.keys(latest)[0];
+const data=latest[meetId];
 
-  const players = data.players.split('\n').map(p => p.trim()).filter(Boolean);
-  const matches = data.matches || [];
-
-  const playerStats = {};
-  players.forEach(p => playerStats[p] = {W:0,D:0,L:0,P:0,diff:0});
-
-  // Compute stats based on matches
-  matches.forEach(m => {
-    const scoreA = parseInt(m.scoreA)||0;
-    const scoreB = parseInt(m.scoreB)||0;
-
-    m.teamA.forEach(player=>{
-      if(scoreA>scoreB){ playerStats[player].W +=1; }
-      else if(scoreA<scoreB){ playerStats[player].L +=1; }
-      else { playerStats[player].D +=1; }
-      playerStats[player].P += scoreA;
-      playerStats[player].diff += scoreA - scoreB;
-    });
-
-    m.teamB.forEach(player=>{
-      if(scoreB>scoreA){ playerStats[player].W +=1; }
-      else if(scoreB<scoreA){ playerStats[player].L +=1; }
-      else { playerStats[player].D +=1; }
-      playerStats[player].P += scoreB;
-      playerStats[player].diff += scoreB - scoreA;
-    });
-  });
-
-  // Sort players by points descending
-  const leaderboardArray = Object.keys(playerStats).map(name=>({
-    name,
-    ...playerStats[name]
-  })).sort((a,b)=>b.P - a.P);
-
-  renderLeaderboard(leaderboardArray);
+buildLeaderboard(data);
 });
 
-// Render leaderboard table
-function renderLeaderboard(players){
-  const tbody = document.querySelector('tbody');
-  tbody.innerHTML = '';
+/* BUILD LEADERBOARD */
+function buildLeaderboard(data){
 
-  players.forEach((p,i)=>{
-    const rankClass = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
-    const row = document.createElement('tr');
-    row.className = rankClass;
-    row.innerHTML = `
-      <td><span class="crown-emoji">👑</span></td>
-      <td>${p.name}</td>
-      <td>${p.W}</td>
-      <td>${p.D}</td>
-      <td>${p.L}</td>
-      <td class="points">${p.P}</td>
-      <td class="diff-positive">${p.diff>0?'+':''}${p.diff}</td>
-    `;
-    tbody.appendChild(row);
-  });
+const players=data.players.split('\n').filter(p=>p.trim());
+const matches=data.matches||[];
+const type=data.type||'classic';
+
+let stats={};
+
+players.forEach(p=>{
+stats[p]={wins:0,losses:0,points:0,against:0,diff:0};
+});
+
+matches.forEach(m=>{
+let aTotal=parseInt(m.scoreA)||0;
+let bTotal=parseInt(m.scoreB)||0;
+
+m.teamA.forEach(p=>{
+stats[p].points+=aTotal;
+stats[p].against+=bTotal;
+});
+m.teamB.forEach(p=>{
+stats[p].points+=bTotal;
+stats[p].against+=aTotal;
+});
+
+if(type.includes('classic')){
+if(aTotal>bTotal){
+m.teamA.forEach(p=>stats[p].wins+=1);
+m.teamB.forEach(p=>stats[p].losses+=1);
+}else if(bTotal>aTotal){
+m.teamB.forEach(p=>stats[p].wins+=1);
+m.teamA.forEach(p=>stats[p].losses+=1);
+}
+}else{
+if(aTotal>bTotal){
+m.teamA.forEach(p=>stats[p].wins+=1);
+m.teamB.forEach(p=>stats[p].losses+=1);
+}else{
+m.teamB.forEach(p=>stats[p].wins+=1);
+m.teamA.forEach(p=>stats[p].losses+=1);
+}
+}
+});
+
+Object.keys(stats).forEach(p=>{
+stats[p].diff=stats[p].points-stats[p].against;
+});
+
+/* SORT */
+let ranked=Object.entries(stats).sort((a,b)=>{
+if(type.includes('classic')){
+return b[1].wins-a[1].wins || b[1].diff-a[1].diff;
+}else{
+return b[1].points-a[1].points || b[1].diff-a[1].diff;
+}
+});
+
+/* PODIUM */
+const podium=document.getElementById('podium');
+ranked.slice(0,3).forEach(([name],i)=>{
+const div=document.createElement('div');
+div.className='player-card';
+div.innerHTML=`
+<div class="player-initials">${name.substring(0,2).toUpperCase()}</div>
+<div>${name}</div>
+`;
+podium.appendChild(div);
+});
+
+/* TABLE */
+const table=document.getElementById('leaderboardTable');
+ranked.forEach(([name,s],i)=>{
+const row=document.createElement('tr');
+row.innerHTML=`
+<td>${i+1}</td>
+<td>${name}</td>
+<td>${s.wins}</td>
+<td>${s.losses}</td>
+<td class="points">${s.points}</td>
+<td>${s.diff}</td>
+`;
+table.appendChild(row);
+});
 }
 </script>
 
 </body>
 </html>
+```0
