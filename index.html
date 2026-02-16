@@ -13,8 +13,8 @@
 body{background:#ffffff;font-family:'Space Grotesk',sans-serif;margin:0}
 /* Top Tabs */
 .top-tabs{background:linear-gradient(90deg,#1e40af,#3b82f6,#facc15);padding:14px;display:flex;justify-content:center;gap:40px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
-.top-tabs a{color:white;text-decoration:none;font-size:13px;opacity:0.8}
-.top-tabs a.active{opacity:1;border-bottom:3px solid white;padding-bottom:4px}
+.top-tabs a{color:white;text-decoration:none;font-size:13px}
+.top-tabs a.active{border-bottom:3px solid white;padding-bottom:4px}
 
 /* Banners */
 .padelpilot-banner{background:#0f172a;color:white;text-align:center;padding:18px;font-size:22px;font-weight:900;letter-spacing:.2em;}
@@ -28,7 +28,7 @@ body{background:#ffffff;font-family:'Space Grotesk',sans-serif;margin:0}
 .field-input{padding:8px 10px;border-radius:10px;border:1px solid #d1d5db;font-size:14px;}
 .time-field{max-width:160px;}
 
-/* Share / Update Button */
+/* Share Button */
 .share-btn{margin-top:12px;width:100%;white-space:nowrap;text-align:center;background:#3b82f6;color:white;padding:10px;font-weight:700;border-radius:10px;cursor:pointer}
 
 /* Matches */
@@ -44,11 +44,10 @@ body{background:#ffffff;font-family:'Space Grotesk',sans-serif;margin:0}
 
 <body>
 
-<!-- TOP NAV -->
 <div class="top-tabs">
-  <a href="index.html">Arena</a>
-  <a href="leaderboard.html">Leaderboard</a>
-  <a href="rules.html">Rules</a>
+<a href="index.html" class="active">Arena</a>
+<a href="leaderboard.html">Leaderboard</a>
+<a href="rules.html">Rules</a>
 </div>
 
 <div class="padelpilot-banner">PADELPILOT</div>
@@ -116,33 +115,30 @@ appId:"1:866905934997:web:97cb8ebc4ed35f9e41f9c"
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
-let meetId=new URLSearchParams(window.location.search).get('meet')||null;
+let meetId=null;
 let currentMatches=[];
 let currentRound=1;
-let restingPlayers=[];
 
 /* AUTO LOAD TOURNAMENT */
-if(meetId){
+document.getElementById('tournamentName').addEventListener('blur',()=>{
+  if(!tournamentName.value) return;
+  meetId=tournamentName.value.replace(/\s+/g,'-').toLowerCase();
   listenTournament();
-}
+});
 
 /* LISTENER */
 function listenTournament(){
-  if(!meetId) return;
   db.ref('arena/'+meetId).on('value',snap=>{
     const data=snap.val();
     if(!data) return;
 
-    tournamentName.value=data.name||'';
     tournamentLocation.value=data.location||'';
     tournamentTime.value=data.time||'';
     playersInput.value=data.players||'';
     tournamentType.value=data.type||'classic';
-    currentMatches=data.matches||[];
-    currentRound=data.round||1;
-    restingPlayers=data.resting||[];
-    
-    renderMatches(restingPlayers);
+    currentMatches=data.matches || [];
+    currentRound=data.round || 1;
+    renderMatches(data.players ? data.players.split('\n').slice(currentMatches.length*4) : []);
   });
 }
 
@@ -158,13 +154,8 @@ function syncTournament(){
     players: playersInput.value,
     type: tournamentType.value,
     matches: currentMatches,
-    round: currentRound,
-    resting: restingPlayers,
     timestamp: Date.now()
-  }).then(()=>{
-    window.history.replaceState(null,null,'?meet='+meetId);
-    alert("Tournament synced!");
-  });
+  }).then(()=> alert("Tournament synced!"));
 }
 
 /* SHARE TO CLIPBOARD */
@@ -184,10 +175,8 @@ function generateMatches(){
   let courts=parseInt(courtsInput.value)||1;
 
   currentMatches=[];
-  restingPlayers=[];
-
-  let actualCourts=Math.min(courts,Math.floor(shuffled.length/4));
-  for(let i=0;i<actualCourts*4;i+=4){
+  for(let i=0;i<courts*4;i+=4){
+    if(!shuffled[i+3]) break;
     currentMatches.push({
       teamA:[shuffled[i],shuffled[i+1]],
       teamB:[shuffled[i+2],shuffled[i+3]],
@@ -196,20 +185,18 @@ function generateMatches(){
     });
   }
 
-  restingPlayers=shuffled.slice(actualCourts*4);
-  currentRound++;
-
+  const resting=shuffled.slice(currentMatches.length*4);
   db.ref('arena/'+meetId).update({
     matches: currentMatches,
-    round: currentRound,
-    resting: restingPlayers
+    round: currentRound+1,
+    resting: resting
   });
 
-  renderMatches(restingPlayers);
+  renderMatches(resting);
 }
 
 /* RENDER MATCHES */
-function renderMatches(resting=[]){
+function renderMatches(restingPlayers=[]){
   const container=document.getElementById('matchesContainer');
   container.innerHTML='';
 
@@ -235,25 +222,29 @@ function renderMatches(resting=[]){
     container.appendChild(card);
   });
 
-  if(resting.length>0){
-    const restDiv=document.createElement('div');
-    restDiv.className='resting-players';
-    restDiv.textContent='Resting Players: '+resting.join(', ');
-    container.appendChild(restDiv);
+  // Resting players display
+  if(restingPlayers.length>0){
+    const restingDiv=document.createElement('div');
+    restingDiv.className='resting-players';
+    restingDiv.textContent='Resting Players: '+restingPlayers.join(', ');
+    container.appendChild(restingDiv);
   }
 }
 
 /* SCORE UPDATE */
 function updateScore(index,side,val){
-  currentMatches[index]['score'+side]=parseInt(val)||0;
+  currentMatches[index]['score'+side]=val;
   db.ref('arena/'+meetId+'/matches').set(currentMatches);
 }
 
-/* DYNAMIC ACTIVE TAB */
-const tabs = document.querySelectorAll('.top-tabs a');
-tabs.forEach(tab=>{
-  if(tab.href === window.location.href) tab.classList.add('active');
-  else tab.classList.remove('active');
+/* --- TAB FIX: preserve ?meet= when switching tabs --- */
+document.querySelectorAll('.top-tabs a').forEach(link => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const meetParam = urlParams.get('meet');
+    if(meetParam){
+        const hrefPage = link.getAttribute('href').split('?')[0];
+        link.setAttribute('href', hrefPage + '?meet=' + meetParam);
+    }
 });
 </script>
 
