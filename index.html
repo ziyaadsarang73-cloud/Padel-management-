@@ -29,8 +29,7 @@ body{background:#ffffff;font-family:'Space Grotesk',sans-serif;margin:0}
 .time-field{max-width:160px;}
 
 /* Share Button */
-.share-btn{margin-top:12px;width:100%;white-space:nowrap;text-align:center;background:#3b82f6;color:white;padding:10px;font-weight:700;border-radius:10px;cursor:pointer;transition:.2s;}
-.share-btn:disabled{opacity:.6;cursor:not-allowed;}
+.share-btn{margin-top:12px;width:100%;white-space:nowrap;text-align:center;background:#3b82f6;color:white;padding:10px;font-weight:700;border-radius:10px;cursor:pointer}
 
 /* Matches */
 .match-card{background:linear-gradient(135deg,#f1f5f9,#e0f2fe);border-radius:24px;padding:28px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 10px 25px rgba(0,0,0,.08);}
@@ -40,14 +39,12 @@ body{background:#ffffff;font-family:'Space Grotesk',sans-serif;margin:0}
 
 /* Resting Players */
 .resting-players{margin-top:16px;padding:12px;background:#fef3c7;color:#b45309;border-radius:12px;font-weight:700;}
-
-/* Loading & Feedback */
-.feedback-msg{margin-top:6px;font-size:12px;color:#2563eb;font-weight:700;}
 </style>
 </head>
 
 <body>
 
+<!-- TOP NAV -->
 <div class="top-tabs">
 <a href="index.html" class="active">Arena</a>
 <a href="leaderboard.html">Leaderboard</a>
@@ -77,10 +74,7 @@ body{background:#ffffff;font-family:'Space Grotesk',sans-serif;margin:0}
     </div>
   </div>
 
-  <button id="shareTournamentBtn" class="share-btn" onclick="copyMatchLink()">
-    Share Tournament Link
-  </button>
-  <div id="feedbackMsg" class="feedback-msg"></div>
+  <button id="updateInfoBtn" class="share-btn" onclick="syncTournament()">Update Info</button>
 </div>
 
 <!-- SETUP -->
@@ -97,7 +91,7 @@ body{background:#ffffff;font-family:'Space Grotesk',sans-serif;margin:0}
 
   <div class="flex gap-4">
     <input id="courtsInput" type="number" min="1" value="1" class="w-24 p-2 border rounded">
-    <button id="syncBtn" onclick="syncTournament()" class="bg-green-600 text-white px-6 rounded">Sync</button>
+    <button onclick="syncTournament()" class="bg-green-600 text-white px-6 rounded">Update Info</button>
     <button onclick="generateMatches()" class="bg-yellow-400 px-6 rounded font-bold">Generate Round</button>
   </div>
 </div>
@@ -120,78 +114,82 @@ appId:"1:866905934997:web:97cb8ebc4ed35f9e41f9c"
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
-let meetId = new URLSearchParams(window.location.search).get('meet') || null;
-let currentMatches = [];
-let currentRound = 0;
-let restingPlayers = [];
+let meetId=new URLSearchParams(window.location.search).get('meet');
+let currentMatches=[];
+let currentRound=0;
+let restingPlayers=[];
 
-// AUTO LOAD TOURNAMENT IF ID IN URL
+// --- AUTO LOAD IF meet ID EXISTS ---
 if(meetId){
   document.getElementById('tournamentName').value = meetId.replace(/-/g,' ');
   listenTournament();
 }
 
-// LISTENER
+/* LISTENER */
 function listenTournament(){
   if(!meetId) return;
-  document.getElementById('feedbackMsg').textContent = "Loading tournament...";
   db.ref('arena/'+meetId).on('value',snap=>{
     const data=snap.val();
-    if(!data){
-      document.getElementById('feedbackMsg').textContent = "";
-      return;
-    }
+    if(!data) return;
 
     tournamentLocation.value=data.location||'';
     tournamentTime.value=data.time||'';
     playersInput.value=data.players||'';
     tournamentType.value=data.type||'classic';
-    currentMatches = data.matches || [];
-    currentRound = data.round || 1;
-    restingPlayers = data.resting || [];
+    currentMatches=data.matches||[];
+    currentRound=data.round||1;
+    restingPlayers=data.resting||[];
 
     renderMatches(restingPlayers);
-    document.getElementById('feedbackMsg').textContent = "Tournament loaded!";
-    setTimeout(()=>document.getElementById('feedbackMsg').textContent='',2000);
   });
 }
 
-// SYNC TO FIREBASE
+/* SYNC TO FIREBASE */
 function syncTournament(){
   if(!tournamentName.value) return alert("Enter tournament name");
-  meetId=tournamentName.value.replace(/\s+/g,'-').toLowerCase();
-  document.getElementById('syncBtn').disabled = true;
-  document.getElementById('feedbackMsg').textContent = "Syncing...";
+
+  meetId = tournamentName.value.replace(/\s+/g,'-').toLowerCase();
 
   db.ref('arena/'+meetId).update({
-    name:tournamentName.value,
-    location:tournamentLocation.value,
-    time:tournamentTime.value,
-    players:playersInput.value,
-    type:tournamentType.value,
+    name: tournamentName.value,
+    location: tournamentLocation.value,
+    time: tournamentTime.value,
+    players: playersInput.value,
+    type: tournamentType.value,
     matches: currentMatches,
     round: currentRound,
     resting: restingPlayers,
     timestamp: Date.now()
-  }).then(()=>{
-    window.history.replaceState({}, '', '?meet='+meetId);
-    document.getElementById('syncBtn').disabled = false;
-    document.getElementById('feedbackMsg').textContent = "Tournament synced!";
-    setTimeout(()=>document.getElementById('feedbackMsg').textContent='',2000);
   });
+
+  // Feedback
+  updateInfoBtn.innerText="Synced!";
+  setTimeout(()=>updateInfoBtn.innerText="Update Info",2000);
 }
 
-// SHARE TO CLIPBOARD
+/* AUTO-SYNC ON CHANGE */
+let syncTimeout;
+function scheduleSync(){
+  clearTimeout(syncTimeout);
+  syncTimeout=setTimeout(syncTournament,1000);
+}
+
+tournamentName.addEventListener('input',scheduleSync);
+tournamentLocation.addEventListener('input',scheduleSync);
+tournamentTime.addEventListener('input',scheduleSync);
+playersInput.addEventListener('input',scheduleSync);
+tournamentType.addEventListener('change',scheduleSync);
+
+/* SHARE TO CLIPBOARD */
 function copyMatchLink(){
   if(!meetId) return alert("Sync tournament first");
-  const url=location.origin+location.pathname+"?meet="+meetId;
+  const url=location.href.split('?')[0]+"?meet="+meetId;
   navigator.clipboard.writeText(url);
   alert("Tournament link copied!");
 }
 
-// GENERATE MATCHES
+/* GENERATE MATCHES */
 function generateMatches(){
-  if(!meetId) return alert("Sync tournament first");
   let raw=playersInput.value.split('\n').filter(p=>p.trim());
   if(raw.length<4) return alert("Need at least 4 entries");
 
@@ -199,12 +197,11 @@ function generateMatches(){
   let courts=parseInt(courtsInput.value)||1;
 
   currentMatches=[];
-  restingPlayers=[];
+  let actualCourts=Math.floor(shuffled.length/4);
+  let finalCourts=Math.min(courts,actualCourts);
 
-  let maxCourts=Math.floor(shuffled.length/4);
-  let actualCourts=Math.min(courts,maxCourts);
-
-  for(let i=0;i<actualCourts*4;i+=4){
+  for(let i=0;i<finalCourts*4;i+=4){
+    if(!shuffled[i+3]) break;
     currentMatches.push({
       teamA:[shuffled[i],shuffled[i+1]],
       teamB:[shuffled[i+2],shuffled[i+3]],
@@ -213,19 +210,19 @@ function generateMatches(){
     });
   }
 
-  restingPlayers=shuffled.slice(actualCourts*4);
-  currentRound = (currentRound||0)+1;
+  restingPlayers=shuffled.slice(finalCourts*4);
 
+  currentRound++;
   db.ref('arena/'+meetId).update({
     matches: currentMatches,
-    resting: restingPlayers,
-    round: currentRound
+    round: currentRound,
+    resting: restingPlayers
   });
 
   renderMatches(restingPlayers);
 }
 
-// RENDER MATCHES
+/* RENDER MATCHES */
 function renderMatches(resting=[]){
   const container=document.getElementById('matchesContainer');
   container.innerHTML='';
@@ -239,28 +236,28 @@ function renderMatches(resting=[]){
     let card=document.createElement('div');
     card.className='match-card';
     card.innerHTML=`
-      <div class="team-block">${m.teamA[0]}<br>${m.teamA[1]||''}</div>
+      <div class="team-block">${m.teamA[0]}<br>${m.teamA[1]}</div>
       <div class="score-row">
         <input type="number" value="${m.scoreA}" oninput="updateScore(${i},'A',this.value)">
         <span>vs</span>
         <input type="number" value="${m.scoreB}" oninput="updateScore(${i},'B',this.value)">
       </div>
-      <div class="team-block text-right">${m.teamB[0]}<br>${m.teamB[1]||''}</div>
+      <div class="team-block text-right">${m.teamB[0]}<br>${m.teamB[1]}</div>
     `;
     container.appendChild(card);
   });
 
   if(resting.length>0){
-    const restDiv=document.createElement('div');
-    restDiv.className='resting-players';
-    restDiv.textContent='Resting Players: '+resting.join(', ');
-    container.appendChild(restDiv);
+    const restingDiv=document.createElement('div');
+    restingDiv.className='resting-players';
+    restingDiv.textContent='Resting Players: '+resting.join(', ');
+    container.appendChild(restingDiv);
   }
 }
 
-// UPDATE SCORE
+/* SCORE UPDATE */
 function updateScore(index,side,val){
-  currentMatches[index]['score'+side]=parseInt(val)||0;
+  currentMatches[index]['score'+side]=val;
   db.ref('arena/'+meetId+'/matches').set(currentMatches);
 }
 </script>
