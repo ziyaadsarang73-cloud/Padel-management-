@@ -13,8 +13,8 @@
 body{background:#ffffff;font-family:'Space Grotesk',sans-serif;margin:0}
 /* Top Tabs */
 .top-tabs{background:linear-gradient(90deg,#1e40af,#3b82f6,#facc15);padding:14px;display:flex;justify-content:center;gap:40px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
-.top-tabs a{color:white;text-decoration:none;font-size:13px}
-.top-tabs a.active{border-bottom:3px solid white;padding-bottom:4px}
+.top-tabs a{color:white;text-decoration:none;font-size:13px;opacity:0.8}
+.top-tabs a.active{opacity:1;border-bottom:3px solid white;padding-bottom:4px}
 
 /* Banners */
 .padelpilot-banner{background:#0f172a;color:white;text-align:center;padding:18px;font-size:22px;font-weight:900;letter-spacing:.2em;}
@@ -28,7 +28,7 @@ body{background:#ffffff;font-family:'Space Grotesk',sans-serif;margin:0}
 .field-input{padding:8px 10px;border-radius:10px;border:1px solid #d1d5db;font-size:14px;}
 .time-field{max-width:160px;}
 
-/* Share Button */
+/* Share / Update Button */
 .share-btn{margin-top:12px;width:100%;white-space:nowrap;text-align:center;background:#3b82f6;color:white;padding:10px;font-weight:700;border-radius:10px;cursor:pointer}
 
 /* Matches */
@@ -46,9 +46,9 @@ body{background:#ffffff;font-family:'Space Grotesk',sans-serif;margin:0}
 
 <!-- TOP NAV -->
 <div class="top-tabs">
-<a href="index.html" class="active">Arena</a>
-<a href="leaderboard.html">Leaderboard</a>
-<a href="rules.html">Rules</a>
+  <a href="index.html">Arena</a>
+  <a href="leaderboard.html">Leaderboard</a>
+  <a href="rules.html">Rules</a>
 </div>
 
 <div class="padelpilot-banner">PADELPILOT</div>
@@ -74,7 +74,9 @@ body{background:#ffffff;font-family:'Space Grotesk',sans-serif;margin:0}
     </div>
   </div>
 
-  <button id="updateInfoBtn" class="share-btn" onclick="syncTournament()">Update Info</button>
+  <button id="shareTournamentBtn" class="share-btn" onclick="copyMatchLink()">
+    Update Info
+  </button>
 </div>
 
 <!-- SETUP -->
@@ -114,14 +116,13 @@ appId:"1:866905934997:web:97cb8ebc4ed35f9e41f9c"
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
-let meetId=new URLSearchParams(window.location.search).get('meet');
+let meetId=new URLSearchParams(window.location.search).get('meet')||null;
 let currentMatches=[];
-let currentRound=0;
+let currentRound=1;
 let restingPlayers=[];
 
-// --- AUTO LOAD IF meet ID EXISTS ---
+/* AUTO LOAD TOURNAMENT */
 if(meetId){
-  document.getElementById('tournamentName').value = meetId.replace(/-/g,' ');
   listenTournament();
 }
 
@@ -132,6 +133,7 @@ function listenTournament(){
     const data=snap.val();
     if(!data) return;
 
+    tournamentName.value=data.name||'';
     tournamentLocation.value=data.location||'';
     tournamentTime.value=data.time||'';
     playersInput.value=data.players||'';
@@ -139,7 +141,7 @@ function listenTournament(){
     currentMatches=data.matches||[];
     currentRound=data.round||1;
     restingPlayers=data.resting||[];
-
+    
     renderMatches(restingPlayers);
   });
 }
@@ -147,8 +149,7 @@ function listenTournament(){
 /* SYNC TO FIREBASE */
 function syncTournament(){
   if(!tournamentName.value) return alert("Enter tournament name");
-
-  meetId = tournamentName.value.replace(/\s+/g,'-').toLowerCase();
+  meetId=tournamentName.value.replace(/\s+/g,'-').toLowerCase();
 
   db.ref('arena/'+meetId).update({
     name: tournamentName.value,
@@ -160,25 +161,11 @@ function syncTournament(){
     round: currentRound,
     resting: restingPlayers,
     timestamp: Date.now()
+  }).then(()=>{
+    window.history.replaceState(null,null,'?meet='+meetId);
+    alert("Tournament synced!");
   });
-
-  // Feedback
-  updateInfoBtn.innerText="Synced!";
-  setTimeout(()=>updateInfoBtn.innerText="Update Info",2000);
 }
-
-/* AUTO-SYNC ON CHANGE */
-let syncTimeout;
-function scheduleSync(){
-  clearTimeout(syncTimeout);
-  syncTimeout=setTimeout(syncTournament,1000);
-}
-
-tournamentName.addEventListener('input',scheduleSync);
-tournamentLocation.addEventListener('input',scheduleSync);
-tournamentTime.addEventListener('input',scheduleSync);
-playersInput.addEventListener('input',scheduleSync);
-tournamentType.addEventListener('change',scheduleSync);
 
 /* SHARE TO CLIPBOARD */
 function copyMatchLink(){
@@ -197,11 +184,10 @@ function generateMatches(){
   let courts=parseInt(courtsInput.value)||1;
 
   currentMatches=[];
-  let actualCourts=Math.floor(shuffled.length/4);
-  let finalCourts=Math.min(courts,actualCourts);
+  restingPlayers=[];
 
-  for(let i=0;i<finalCourts*4;i+=4){
-    if(!shuffled[i+3]) break;
+  let actualCourts=Math.min(courts,Math.floor(shuffled.length/4));
+  for(let i=0;i<actualCourts*4;i+=4){
     currentMatches.push({
       teamA:[shuffled[i],shuffled[i+1]],
       teamB:[shuffled[i+2],shuffled[i+3]],
@@ -210,9 +196,9 @@ function generateMatches(){
     });
   }
 
-  restingPlayers=shuffled.slice(finalCourts*4);
-
+  restingPlayers=shuffled.slice(actualCourts*4);
   currentRound++;
+
   db.ref('arena/'+meetId).update({
     matches: currentMatches,
     round: currentRound,
@@ -227,11 +213,13 @@ function renderMatches(resting=[]){
   const container=document.getElementById('matchesContainer');
   container.innerHTML='';
 
+  // Round display
   const roundDiv=document.createElement('div');
   roundDiv.className='text-xl font-bold mb-4';
   roundDiv.textContent=`Round ${currentRound}`;
   container.appendChild(roundDiv);
 
+  // Match cards
   currentMatches.forEach((m,i)=>{
     let card=document.createElement('div');
     card.className='match-card';
@@ -248,18 +236,25 @@ function renderMatches(resting=[]){
   });
 
   if(resting.length>0){
-    const restingDiv=document.createElement('div');
-    restingDiv.className='resting-players';
-    restingDiv.textContent='Resting Players: '+resting.join(', ');
-    container.appendChild(restingDiv);
+    const restDiv=document.createElement('div');
+    restDiv.className='resting-players';
+    restDiv.textContent='Resting Players: '+resting.join(', ');
+    container.appendChild(restDiv);
   }
 }
 
 /* SCORE UPDATE */
 function updateScore(index,side,val){
-  currentMatches[index]['score'+side]=val;
+  currentMatches[index]['score'+side]=parseInt(val)||0;
   db.ref('arena/'+meetId+'/matches').set(currentMatches);
 }
+
+/* DYNAMIC ACTIVE TAB */
+const tabs = document.querySelectorAll('.top-tabs a');
+tabs.forEach(tab=>{
+  if(tab.href === window.location.href) tab.classList.add('active');
+  else tab.classList.remove('active');
+});
 </script>
 
 </body>
