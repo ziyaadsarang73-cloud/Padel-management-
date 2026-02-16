@@ -1,116 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PadelPilot Leaderboard</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-  <style>
-    :root {
-      --bg: #ffffff;
-      --banner-bg: linear-gradient(90deg,#1e40af,#3b82f6,#facc15);
-      --card-bg: #f1f5f9;
-      --text: #0f172a;
-      --gold: #ffd700;
-      --silver: #c0c0c0;
-      --bronze: #cd7f32;
-      --green: #16a34a;
-      --accent: #3b82f6;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PadelPilot Leaderboard</title>
 
-    * {margin:0;padding:0;box-sizing:border-box;}
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 
-    body {
-      font-family:'Space Grotesk',sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height:100vh;
-      padding:12px;
-    }
+<style>
+body {
+  background: #ffffff;
+  font-family: 'Space Grotesk', sans-serif;
+  margin: 0;
+}
 
-    /* Top Tabs */
-    .top-tabs{
-      background: var(--banner-bg);
-      padding:14px;
-      display:flex;
-      justify-content:center;
-      gap:40px;
-      font-weight:700;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-    }
-    .top-tabs a{color:white;text-decoration:none;font-size:13px}
-    .top-tabs a.active{border-bottom:3px solid white;padding-bottom:4px}
+/* Top Tabs */
+.top-tabs{
+  background: linear-gradient(90deg,#1e40af,#3b82f6,#facc15);
+  padding: 14px;
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.top-tabs a{color:white;text-decoration:none;font-size:13px}
+.top-tabs a.active{border-bottom:3px solid white;padding-bottom:4px}
 
-    /* Banners */
-    .padelpilot-banner{
-      background:#0f172a;color:white;text-align:center;padding:18px;
-      font-size:22px;font-weight:900;letter-spacing:.2em;
-    }
-    .leaderboard-banner{
-      background:linear-gradient(90deg,#2563eb,#facc15);
-      color:#0f172a;text-align:center;padding:26px;
-      font-size:32px;font-weight:900;letter-spacing:.15em;
-    }
+/* Banners */
+.padelpilot-banner{
+  background:#0f172a;color:white;text-align:center;padding:18px;
+  font-size:22px;font-weight:900;letter-spacing:.2em;
+}
+.arena-banner{
+  background:linear-gradient(90deg,#2563eb,#facc15);
+  color:#0f172a;text-align:center;padding:26px;
+  font-size:32px;font-weight:900;letter-spacing:.15em;
+}
 
-    /* Share Button */
-    .share-btn{
-      margin:12px 0;
-      width:100%;
-      white-space:nowrap;
-      text-align:center;
-      background:var(--accent);
-      color:white;
-      padding:10px;
-      font-weight:700;
-      border-radius:10px;
-      cursor:pointer;
-    }
+/* Leaderboard */
+.container {
+  max-width: 5xl;
+  margin: 0 auto;
+  padding: 24px;
+}
 
-    /* Table */
-    .container {
-      max-width: 700px;
-      margin: 0 auto;
-      background: var(--card-bg);
-      border-radius: 24px;
-      overflow: hidden;
-      padding:16px;
-      box-shadow:0 10px 25px rgba(0,0,0,0.08);
-    }
+.table-container {
+  background: #f1f5f9;
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,.08);
+}
 
-    table {width:100%;border-collapse:collapse;font-size:1rem;margin-top:12px;}
-    th, td {padding:12px 8px;text-align:center;}
-    th {font-weight:700;opacity:0.8;font-size:0.88rem;}
-    tr {border-bottom:1px solid rgba(0,0,0,0.08);}
-    tr:last-child {border-bottom:none;}
-    .rank-1 {color: var(--gold);}
-    .rank-2 {color: var(--silver);}
-    .rank-3 {color: var(--bronze);}
-    .crown-emoji {font-size:1.1rem;margin-right:4px;}
-    .points {font-weight:700;color:var(--green);}
-    .diff-positive {color:var(--green);}
-    .rounds {
-      display:flex;
-      justify-content:center;
-      gap:12px;
-      padding:16px;
-      border-top:1px solid rgba(0,0,0,0.08);
-    }
-    .round-btn {
-      padding:8px 16px;
-      background:rgba(0,0,0,0.05);
-      border:1px solid rgba(0,0,0,0.1);
-      border-radius:20px;
-      color: var(--text);
-      font-size:0.86rem;
-      cursor:pointer;
-    }
-    .round-btn.active {background: var(--accent); border-color: var(--accent); color:white;}
-  </style>
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1rem;
+}
+
+th, td {
+  text-align: center;
+  padding: 12px 8px;
+}
+
+th { font-weight: 700; opacity: 0.8; }
+
+tr { border-bottom: 1px solid rgba(0,0,0,0.08); }
+tr:last-child { border-bottom: none; }
+
+.rank-1 { color: #ffd700; font-weight: 900; }
+.rank-2 { color: #c0c0c0; font-weight: 900; }
+.rank-3 { color: #cd7f32; font-weight: 900; }
+
+.crown-emoji { margin-right: 4px; }
+
+/* Rounds */
+.rounds {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.round-btn {
+  padding: 8px 16px;
+  background: rgba(59,130,246,0.1);
+  border-radius: 20px;
+  border: 1px solid rgba(59,130,246,0.3);
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.round-btn.active {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+/* Share button */
+.share-btn {
+  margin: 16px auto;
+  display: block;
+  width: fit-content;
+  padding: 10px 24px;
+  border-radius: 12px;
+  background: #3b82f6;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+</style>
 </head>
+
 <body>
 
-<!-- TOP NAV -->
+<!-- Top Tabs -->
 <div class="top-tabs">
   <a href="index.html">Arena</a>
   <a href="leaderboard.html" class="active">Leaderboard</a>
@@ -118,123 +125,105 @@
 </div>
 
 <div class="padelpilot-banner">PADELPILOT</div>
-<div class="leaderboard-banner">LEADERBOARD</div>
+<div class="arena-banner">LEADERBOARD</div>
 
 <div class="container">
 
-  <!-- Share Button -->
-  <button id="shareLeaderboardBtn" class="share-btn">Share Leaderboard Link</button>
+  <button class="share-btn" onclick="copyLeaderboardLink()">Share Leaderboard</button>
 
-  <!-- Leaderboard Table -->
-  <table>
-    <thead>
-      <tr>
-        <th></th>
-        <th>Players</th>
-        <th>W</th>
-        <th>D</th>
-        <th>L</th>
-        <th>P</th>
-        <th>+/-</th>
-      </tr>
-    </thead>
-    <tbody id="leaderboardBody">
-      <!-- Filled dynamically from Arena -->
-    </tbody>
-  </table>
-
-  <!-- Rounds -->
-  <div class="rounds" id="roundButtons">
-    <!-- Filled dynamically -->
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Player / Team</th>
+          <th>W</th>
+          <th>D</th>
+          <th>L</th>
+          <th>Points</th>
+          <th>Diff</th>
+        </tr>
+      </thead>
+      <tbody id="leaderboardBody">
+        <!-- Dynamic content -->
+      </tbody>
+    </table>
   </div>
+
+  <div class="rounds" id="roundsContainer">
+    <!-- Round buttons dynamically added -->
+  </div>
+
 </div>
 
 <script>
-  // Get tournament ID from URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const meetId = urlParams.get('meet');
+const firebaseConfig={
+apiKey:"AIzaSyAKJywAbSKpKHqOs1a-_nQVBuQGkFmF4d4",
+authDomain:"padelpilot-4531f.firebaseapp.com",
+databaseURL:"https://padelpilot-4531f-default-rtdb.firebaseio.com",
+projectId:"padelpilot-4531f",
+storageBucket:"padelpilot-4531f.appspot.com",
+messagingSenderId:"866905934997",
+appId:"1:866905934997:web:97cb8ebc4ed35f9e41f9c"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-  const db = firebase.database ? firebase.database() : null;
+let meetId = new URLSearchParams(window.location.search).get('meet');
+if(meetId){
+  db.ref('arena/' + meetId).once('value').then(snapshot => {
+    const data = snapshot.val();
+    if(!data) return;
 
-  // Sample fallback data
-  let leaderboardData = [];
+    const players = data.players.split('\n').filter(p=>p.trim());
+    const matches = data.matches || [];
 
-  if(meetId && db){
-    // Fetch from Firebase arena matches
-    db.ref('arena/'+meetId).get().then(snap=>{
-      const data = snap.val();
-      if(!data) return;
-      const playersRaw = data.players ? data.players.split('\n') : [];
-      const matches = data.matches || [];
-
-      // Build simple points table (Americano style: 3 points win, 1 draw)
-      let pointsMap = {};
-      playersRaw.forEach(p=>pointsMap[p]={W:0,D:0,L:0,P:0,Diff:0});
-      matches.forEach(m=>{
-        const [a1,a2]=m.teamA;
-        const [b1,b2]=m.teamB;
-        const sA=parseInt(m.scoreA)||0;
-        const sB=parseInt(m.scoreB)||0;
-
-        // Update team A
-        if(sA>sB){
-          [a1,a2].forEach(p=>{pointsMap[p].W++; pointsMap[p].P+=3; pointsMap[p].Diff+=sA-sB;});
-          [b1,b2].forEach(p=>{pointsMap[p].L++; pointsMap[p].Diff+=sB-sA;});
-        } else if(sB>sA){
-          [b1,b2].forEach(p=>{pointsMap[p].W++; pointsMap[p].P+=3; pointsMap[p].Diff+=sB-sA;});
-          [a1,a2].forEach(p=>{pointsMap[p].L++; pointsMap[p].Diff+=sA-sB;});
-        } else {
-          [a1,a2,b1,b2].forEach(p=>{pointsMap[p].D++; pointsMap[p].P+=1;});
-        }
-      });
-
-      leaderboardData = Object.entries(pointsMap).map(([name,stats])=>{
-        return {name,...stats};
-      });
-
-      // Sort by points descending
-      leaderboardData.sort((a,b)=>b.P-a.P);
-
-      // Render table
-      const tbody=document.getElementById('leaderboardBody');
-      tbody.innerHTML='';
-      leaderboardData.forEach((p,i)=>{
-        let rankClass='';
-        if(i===0) rankClass='rank-1';
-        else if(i===1) rankClass='rank-2';
-        else if(i===2) rankClass='rank-3';
-        tbody.innerHTML+=`
-          <tr class="${rankClass}">
-            <td><span class="crown-emoji">👑</span></td>
-            <td>${p.name}</td>
-            <td>${p.W}</td>
-            <td>${p.D}</td>
-            <td>${p.L}</td>
-            <td class="points">${p.P}</td>
-            <td class="${p.Diff>=0?'diff-positive':''}">${p.Diff>=0?'+':''}${p.Diff}</td>
-          </tr>
-        `;
-      });
-
-      // Render round buttons
-      const roundContainer = document.getElementById('roundButtons');
-      for(let r=1;r<=10;r++){
-        const btn = document.createElement('button');
-        btn.textContent = 'Round '+r;
-        btn.className='round-btn'+(r===1?' active':'');
-        roundContainer.appendChild(btn);
-      }
-    });
-  }
-
-  // Share Leaderboard Link
-  document.getElementById('shareLeaderboardBtn').addEventListener('click',()=>{
-    if(!meetId) return alert("No tournament selected!");
-    const url = location.href.split('?')[0] + "?meet=" + meetId;
-    navigator.clipboard.writeText(url)
-      .then(()=>alert("Leaderboard link copied!"))
-      .catch(()=>alert("Failed to copy link."));
+    renderLeaderboard(players, matches);
   });
+}
+
+function renderLeaderboard(players, matches){
+  const tbody = document.getElementById('leaderboardBody');
+  tbody.innerHTML='';
+
+  players.forEach((player,i)=>{
+    let rankClass='';
+    if(i==0) rankClass='rank-1';
+    else if(i==1) rankClass='rank-2';
+    else if(i==2) rankClass='rank-3';
+
+    const tr = document.createElement('tr');
+    tr.className=rankClass;
+    tr.innerHTML=`
+      <td><span class="crown-emoji">${i<3?'👑':''}</span></td>
+      <td>${player}</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Rounds
+  const roundsContainer = document.getElementById('roundsContainer');
+  roundsContainer.innerHTML='';
+  for(let r=1;r<=10;r++){
+    const btn = document.createElement('button');
+    btn.className='round-btn';
+    btn.textContent='Round '+r;
+    roundsContainer.appendChild(btn);
+  }
+}
+
+/* Share Leaderboard */
+function copyLeaderboardLink(){
+  if(!meetId) return alert("No tournament selected");
+  const url = location.href.split('?')[0]+'?meet='+meetId;
+  navigator.clipboard.writeText(url);
+  alert("Leaderboard link copied");
+}
 </script>
 
 </body>
