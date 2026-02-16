@@ -26,49 +26,112 @@ font-weight:700;letter-spacing:.08em;text-transform:uppercase;
 background:#0f172a;color:white;text-align:center;padding:18px;
 font-size:22px;font-weight:900;letter-spacing:.2em;
 }
-.leaderboard-banner{
+.arena-banner{
 background:linear-gradient(90deg,#2563eb,#facc15);
 color:#0f172a;text-align:center;padding:26px;
 font-size:32px;font-weight:900;letter-spacing:.15em;
 }
 
-/* Tournament Name */
-.tournament-name{
-font-size:28px;font-weight:900;text-align:center;margin:16px 0;letter-spacing:.05em;
+/* Tournament Name Floating */
+.tournament-title{
+text-align:center;
+font-size:28px;
+font-weight:900;
+margin:24px 0 12px 0;
+letter-spacing:.1em;
+color:#1e40af;
 }
 
-/* Podium & Top 3 */
-.podium-row{display:flex;justify-content:center;align-items:flex-end;gap:24px;margin:24px 0}
-.podium-player{text-align:center;display:flex;flex-direction:column;align-items:center}
-.podium-player.first{transform:translateY(-20px)}
-.podium-player.second{transform:translateY(-10px)}
-.podium-player.third{transform:translateY(-10px)}
-.podium-crown{font-size:2rem;margin-bottom:6px}
-.player-initials{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1.5rem;margin-bottom:6px}
+/* Podium */
+.podium-container{
+display:flex;
+justify-content:center;
+align-items:flex-end;
+gap:16px;
+margin-bottom:24px;
+position:relative;
+}
+.podium-player{
+display:flex;
+flex-direction:column;
+align-items:center;
+font-weight:700;
+color:#0f172a;
+position:relative;
+}
+.podium-block{
+border-radius:8px;
+width:96px;
+display:flex;
+align-items:center;
+justify-content:center;
+color:white;
+font-weight:700;
+padding:12px 0;
+box-shadow:0 6px 12px rgba(0,0,0,0.15);
+}
+.rank-1-block{background:#ffd700;height:140px;margin-bottom:0;}
+.rank-2-block{background:#c0c0c0;height:110px;margin-bottom:30px;}
+.rank-3-block{background:#cd7f32;height:100px;margin-bottom:40px;}
+.crown{font-size:28px;margin-bottom:4px;}
 
-/* Table */
-.table-container{padding:0 16px 20px}
-table{width:100%;border-collapse:collapse;font-size:0.94rem}
-th,td{padding:12px 8px;text-align:center}
-th{font-weight:600;opacity:.8;font-size:.88rem}
-tr{border-bottom:1px solid rgba(0,0,0,.1)}
-tr:last-child{border-bottom:none}
-.rank-1{color:#ffd700}
-.rank-2{color:#c0c0c0}
-.rank-3{color:#cd7f32}
-.points{font-weight:700;color:#16a34a}
+/* Scorecard */
+.table-container{
+max-width:700px;
+margin:0 auto 40px auto;
+overflow-x:auto;
+}
+table{
+width:100%;
+border-collapse:collapse;
+font-size:14px;
+text-align:center;
+}
+th,td{padding:10px;border-bottom:1px solid #e5e7eb;}
+th{font-weight:700;color:#0f172a;opacity:0.8;}
 
-/* Rounds & Share */
-.rounds{display:flex;justify-content:center;gap:12px;padding:16px;border-top:1px solid rgba(0,0,0,.08)}
-.round-btn{padding:8px 16px;background:rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.12);border-radius:20px;color:#0f172a;font-size:0.86rem;cursor:pointer}
-.round-btn.active{background:#3b82f6;color:white;border-color:#3b82f6}
-.share-btn{margin:16px auto 0;display:block;padding:10px 16px;background:#3b82f6;color:white;font-weight:700;border-radius:10px;cursor:pointer}
+/* Rounds */
+.rounds{
+display:flex;justify-content:center;gap:12px;margin-bottom:20px;
+}
+.round-btn{
+padding:6px 14px;
+background:rgba(0,0,0,0.05);
+border-radius:20px;
+border:1px solid rgba(0,0,0,0.1);
+font-size:12px;
+cursor:pointer;
+}
+.round-btn.active{
+background:#2563eb;
+color:white;
+border-color:#2563eb;
+}
 
-/* Resting players */
-.resting-players{margin-top:16px;padding:12px;background:#fef3c7;color:#b45309;border-radius:12px;font-weight:700;text-align:center}
+/* Resting Players */
+.resting-players{
+margin-top:12px;
+padding:10px;
+background:#fef3c7;
+color:#b45309;
+border-radius:10px;
+font-weight:700;
+text-align:center;
+}
+
+/* Share Button */
+.share-btn{
+margin:16px auto;
+display:block;
+background:#3b82f6;
+color:white;
+padding:10px 20px;
+font-weight:700;
+border-radius:10px;
+cursor:pointer;
+}
 </style>
 </head>
-
 <body>
 
 <!-- TOP NAV -->
@@ -79,40 +142,40 @@ tr:last-child{border-bottom:none}
 </div>
 
 <div class="padelpilot-banner">PADELPILOT</div>
-<div class="leaderboard-banner">LEADERBOARD</div>
-
-<div class="max-w-5xl mx-auto p-6 space-y-6">
+<div class="arena-banner">LEADERBOARD</div>
 
 <!-- Tournament Name -->
-<div id="tournamentNameDisplay" class="tournament-name"></div>
+<div id="tournamentTitle" class="tournament-title">Tournament Name</div>
 
-<!-- Share -->
-<button id="shareLeaderboardBtn" class="share-btn">Share Leaderboard Link</button>
+<!-- Podium -->
+<div class="podium-container" id="podiumContainer"></div>
 
-<!-- Podium for Top 3 -->
-<div id="podiumContainer" class="podium-row"></div>
-
-<!-- Table for remaining players -->
+<!-- Scorecard -->
 <div class="table-container">
 <table>
 <thead>
 <tr>
 <th>Rank</th>
-<th>Players</th>
+<th>Player / Team</th>
 <th>W</th>
 <th>D</th>
 <th>L</th>
-<th>P</th>
-<th>+/-</th>
+<th>Points</th>
+<th>Diff</th>
 </tr>
 </thead>
-<tbody id="leaderboardBody">
-<!-- Remaining players rendered here -->
-</tbody>
+<tbody id="scoreTableBody"></tbody>
 </table>
 </div>
 
-</div>
+<!-- Rounds -->
+<div class="rounds" id="roundsContainer"></div>
+
+<!-- Resting Players -->
+<div id="restingPlayersContainer" class="resting-players"></div>
+
+<!-- Share Button -->
+<button class="share-btn" onclick="shareLeaderboard()">Share Leaderboard</button>
 
 <script>
 const firebaseConfig={
@@ -127,100 +190,115 @@ appId:"1:866905934997:web:97cb8ebc4ed35f9e41f9c"
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
-let meetId = null;
+let meetId=null;
+let currentMatches=[];
+let currentRound=1;
 
-// Get meet from URL if passed
+// Get tournament from query parameter if available
 const urlParams = new URLSearchParams(window.location.search);
-if(urlParams.has('meet')) meetId = urlParams.get('meet');
-
-// Share leaderboard
-document.getElementById('shareLeaderboardBtn').onclick = function(){
-  if(!meetId) return alert("No tournament linked");
-  const url = location.href.split('?')[0] + "?meet=" + meetId;
-  navigator.clipboard.writeText(url);
-  alert("Leaderboard link copied!");
+if(urlParams.get('meet')){
+meetId=urlParams.get('meet');
+listenTournament();
 }
 
-// Load data from Firebase
-if(meetId){
-db.ref('arena/' + meetId).once('value').then(snap=>{
-const data = snap.val();
+function listenTournament(){
+db.ref('arena/'+meetId).on('value',snap=>{
+const data=snap.val();
 if(!data) return;
 
-// Display tournament name
-document.getElementById('tournamentNameDisplay').textContent = data.name || 'Tournament';
+// Set tournament name
+document.getElementById('tournamentTitle').textContent = data.name||'Tournament Name';
 
-// Parse players and scores
-let matches = data.matches || [];
-let allPlayers = [];
-
-// Flatten teams for points and add wins/draws/losses for Americano scoring
-matches.forEach(m=>{
-  const scoreA = parseInt(m.scoreA)||0;
-  const scoreB = parseInt(m.scoreB)||0;
-
-  [m.teamA[0], m.teamA[1]].forEach(name=>{
-    if(!allPlayers.find(p=>p.name===name)) allPlayers.push({name, W:0,D:0,L:0,P:0,diff:0});
-    let p = allPlayers.find(p=>p.name===name);
-    p.P += scoreA;
-    p.diff += (scoreA - scoreB);
-    if(scoreA>scoreB) p.W++;
-    else if(scoreA<scoreB) p.L++;
-    else p.D++;
-  });
-  [m.teamB[0], m.teamB[1]].forEach(name=>{
-    if(!allPlayers.find(p=>p.name===name)) allPlayers.push({name, W:0,D:0,L:0,P:0,diff:0});
-    let p = allPlayers.find(p=>p.name===name);
-    p.P += scoreB;
-    p.diff += (scoreB - scoreA);
-    if(scoreB>scoreA) p.W++;
-    else if(scoreB<scoreA) p.L++;
-    else p.D++;
-  });
+// Players & matches
+let rawPlayers = (data.players||'').split('\n').filter(p=>p.trim());
+currentMatches = data.matches || [];
+renderLeaderboard(rawPlayers,currentMatches);
 });
-
-// Sort descending by points
-allPlayers.sort((a,b)=>b.P - a.P);
-
-// Render Podium
-const podiumContainer = document.getElementById('podiumContainer');
-podiumContainer.innerHTML='';
-const podiumClasses=['first','second','third'];
-for(let i=0;i<3 && i<allPlayers.length;i++){
-  const p = allPlayers[i];
-  let div = document.createElement('div');
-  div.className='podium-player '+podiumClasses[i];
-  div.innerHTML=`
-    <div class="podium-crown">${i===0?'👑':i===1?'👑':'👑'}</div>
-    <div class="player-initials" style="border-color:${i===0?'#ffd700':i===1?'#c0c0c0':'#cd7f32'}">
-      ${p.name.split(' ').map(n=>n[0].toUpperCase()).join('')}
-    </div>
-    <div class="player-name">${p.name}</div>
-    <div class="points">${p.P} pts</div>
-  `;
-  podiumContainer.appendChild(div);
 }
 
-// Render remaining players
-const tbody=document.getElementById('leaderboardBody');
-tbody.innerHTML='';
-allPlayers.forEach((p,i)=>{
-  if(i<3) return; // Skip podium
-  const tr=document.createElement('tr');
-  tr.innerHTML=`
-    <td>${i+1}</td>
-    <td>${p.name}</td>
-    <td>${p.W}</td>
-    <td>${p.D}</td>
-    <td>${p.L}</td>
-    <td class="points">${p.P}</td>
-    <td>${p.diff>=0?'+':''}${p.diff}</td>
-  `;
-  tbody.appendChild(tr);
+function renderLeaderboard(players,matches){
+const podiumContainer=document.getElementById('podiumContainer');
+const scoreTableBody=document.getElementById('scoreTableBody');
+const roundsContainer=document.getElementById('roundsContainer');
+const restingContainer=document.getElementById('restingPlayersContainer');
+
+podiumContainer.innerHTML='';
+scoreTableBody.innerHTML='';
+roundsContainer.innerHTML='';
+restingContainer.innerHTML='';
+
+// Calculate points per player (Americano rules)
+let scores={};
+players.forEach(p=>scores[p]={W:0,D:0,L:0,P:0,Dif:0});
+matches.forEach(m=>{
+// Team A
+m.teamA.forEach(p=>{
+scores[p].P += parseInt(m.scoreA)||0;
+if((parseInt(m.scoreA)||0)>(parseInt(m.scoreB)||0)) scores[p].W+=1;
+else if((parseInt(m.scoreA)||0)==(parseInt(m.scoreB)||0)) scores[p].D+=1;
+else scores[p].L+=1;
+scores[p].Dif += (parseInt(m.scoreA)||0)-(parseInt(m.scoreB)||0);
+});
+// Team B
+m.teamB.forEach(p=>{
+scores[p].P += parseInt(m.scoreB)||0;
+if((parseInt(m.scoreB)||0)>(parseInt(m.scoreA)||0)) scores[p].W+=1;
+else if((parseInt(m.scoreB)||0)==(parseInt(m.scoreA)||0)) scores[p].D+=1;
+else scores[p].L+=1;
+scores[p].Dif += (parseInt(m.scoreB)||0)-(parseInt(m.scoreA)||0);
 });
 });
+
+// Sort by points descending
+let sortedPlayers = Object.entries(scores).sort((a,b)=>b[1].P - a[1].P);
+
+// Podium top 3
+const podiumRanks=['rank-2-block','rank-1-block','rank-3-block'];
+for(let i=0;i<Math.min(3,sortedPlayers.length);i++){
+let [name,s] = sortedPlayers[i];
+let div=document.createElement('div');
+div.className='podium-player';
+div.innerHTML=`
+<div class="crown">👑</div>
+<div class="podium-block ${podiumRanks[i]}">${name}</div>
+`;
+podiumContainer.appendChild(div);
+}
+
+// Full score table
+sortedPlayers.forEach(([name,s],idx)=>{
+let tr=document.createElement('tr');
+tr.innerHTML=`
+<td>${idx+1}</td>
+<td>${name}</td>
+<td>${s.W}</td>
+<td>${s.D}</td>
+<td>${s.L}</td>
+<td>${s.P}</td>
+<td>${s.Dif>0?'+':''}${s.Dif}</td>
+`;
+scoreTableBody.appendChild(tr);
+});
+
+// Rounds
+for(let r=1;r<=currentMatches.length/Math.max(1,Math.floor(players.length/4));r++){
+let btn=document.createElement('button');
+btn.className='round-btn'+(r==currentRound?' active':'');
+btn.textContent='Round '+r;
+roundsContainer.appendChild(btn);
+}
+
+// Resting players
+const restingPlayers = players.filter(p=>!currentMatches.some(m=>m.teamA.includes(p) || m.teamB.includes(p)));
+restingContainer.textContent = restingPlayers.length>0?'Resting Players: '+restingPlayers.join(', '):'';
+}
+
+// Share leaderboard
+function shareLeaderboard(){
+const url=location.href.split('?')[0]+"?meet="+meetId;
+navigator.clipboard.writeText(url);
+alert("Leaderboard link copied!");
 }
 </script>
-
 </body>
 </html>
