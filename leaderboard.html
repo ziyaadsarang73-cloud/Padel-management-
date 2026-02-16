@@ -10,149 +10,107 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-body {
-  background: #ffffff;
-  font-family: 'Space Grotesk', sans-serif;
-  margin: 0;
-}
+body{background:#ffffff;font-family:'Space Grotesk',sans-serif;margin:0}
 
 /* Top Tabs */
 .top-tabs{
-  background: linear-gradient(90deg,#1e40af,#3b82f6,#facc15);
-  padding: 14px;
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
+background:linear-gradient(90deg,#1e40af,#3b82f6,#facc15);
+padding:14px;display:flex;justify-content:center;gap:40px;
+font-weight:700;letter-spacing:.08em;text-transform:uppercase;
 }
 .top-tabs a{color:white;text-decoration:none;font-size:13px}
 .top-tabs a.active{border-bottom:3px solid white;padding-bottom:4px}
 
 /* Banners */
 .padelpilot-banner{
-  background:#0f172a;color:white;text-align:center;padding:18px;
-  font-size:22px;font-weight:900;letter-spacing:.2em;
+background:#0f172a;color:white;text-align:center;padding:18px;
+font-size:22px;font-weight:900;letter-spacing:.2em;
 }
-.arena-banner{
-  background:linear-gradient(90deg,#2563eb,#facc15);
-  color:#0f172a;text-align:center;padding:26px;
-  font-size:32px;font-weight:900;letter-spacing:.15em;
-}
-
-/* Leaderboard */
-.container {
-  max-width: 5xl;
-  margin: 0 auto;
-  padding: 24px;
+.leaderboard-banner{
+background:linear-gradient(90deg,#2563eb,#facc15);
+color:#0f172a;text-align:center;padding:26px;
+font-size:32px;font-weight:900;letter-spacing:.15em;
 }
 
-.table-container {
-  background: #f1f5f9;
-  border-radius: 24px;
-  padding: 20px;
-  box-shadow: 0 10px 25px rgba(0,0,0,.08);
+/* Tournament Name */
+.tournament-name{
+font-size:28px;font-weight:900;text-align:center;margin:16px 0;letter-spacing:.05em;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 1rem;
-}
+/* Podium & Top 3 */
+.podium-row{display:flex;justify-content:center;align-items:flex-end;gap:24px;margin:24px 0}
+.podium-player{text-align:center;display:flex;flex-direction:column;align-items:center}
+.podium-player.first{transform:translateY(-20px)}
+.podium-player.second{transform:translateY(-10px)}
+.podium-player.third{transform:translateY(-10px)}
+.podium-crown{font-size:2rem;margin-bottom:6px}
+.player-initials{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1.5rem;margin-bottom:6px}
 
-th, td {
-  text-align: center;
-  padding: 12px 8px;
-}
+/* Table */
+.table-container{padding:0 16px 20px}
+table{width:100%;border-collapse:collapse;font-size:0.94rem}
+th,td{padding:12px 8px;text-align:center}
+th{font-weight:600;opacity:.8;font-size:.88rem}
+tr{border-bottom:1px solid rgba(0,0,0,.1)}
+tr:last-child{border-bottom:none}
+.rank-1{color:#ffd700}
+.rank-2{color:#c0c0c0}
+.rank-3{color:#cd7f32}
+.points{font-weight:700;color:#16a34a}
 
-th { font-weight: 700; opacity: 0.8; }
+/* Rounds & Share */
+.rounds{display:flex;justify-content:center;gap:12px;padding:16px;border-top:1px solid rgba(0,0,0,.08)}
+.round-btn{padding:8px 16px;background:rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.12);border-radius:20px;color:#0f172a;font-size:0.86rem;cursor:pointer}
+.round-btn.active{background:#3b82f6;color:white;border-color:#3b82f6}
+.share-btn{margin:16px auto 0;display:block;padding:10px 16px;background:#3b82f6;color:white;font-weight:700;border-radius:10px;cursor:pointer}
 
-tr { border-bottom: 1px solid rgba(0,0,0,0.08); }
-tr:last-child { border-bottom: none; }
-
-.rank-1 { color: #ffd700; font-weight: 900; }
-.rank-2 { color: #c0c0c0; font-weight: 900; }
-.rank-3 { color: #cd7f32; font-weight: 900; }
-
-.crown-emoji { margin-right: 4px; }
-
-/* Rounds */
-.rounds {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  padding: 16px;
-}
-
-.round-btn {
-  padding: 8px 16px;
-  background: rgba(59,130,246,0.1);
-  border-radius: 20px;
-  border: 1px solid rgba(59,130,246,0.3);
-  color: #0f172a;
-  cursor: pointer;
-}
-
-.round-btn.active {
-  background: #2563eb;
-  color: white;
-  border-color: #2563eb;
-}
-
-/* Share button */
-.share-btn {
-  margin: 16px auto;
-  display: block;
-  width: fit-content;
-  padding: 10px 24px;
-  border-radius: 12px;
-  background: #3b82f6;
-  color: white;
-  font-weight: 700;
-  cursor: pointer;
-}
+/* Resting players */
+.resting-players{margin-top:16px;padding:12px;background:#fef3c7;color:#b45309;border-radius:12px;font-weight:700;text-align:center}
 </style>
 </head>
 
 <body>
 
-<!-- Top Tabs -->
+<!-- TOP NAV -->
 <div class="top-tabs">
-  <a href="index.html">Arena</a>
-  <a href="leaderboard.html" class="active">Leaderboard</a>
-  <a href="rules.html">Rules</a>
+<a href="index.html">Arena</a>
+<a href="leaderboard.html" class="active">Leaderboard</a>
+<a href="rules.html">Rules</a>
 </div>
 
 <div class="padelpilot-banner">PADELPILOT</div>
-<div class="arena-banner">LEADERBOARD</div>
+<div class="leaderboard-banner">LEADERBOARD</div>
 
-<div class="container">
+<div class="max-w-5xl mx-auto p-6 space-y-6">
 
-  <button class="share-btn" onclick="copyLeaderboardLink()">Share Leaderboard</button>
+<!-- Tournament Name -->
+<div id="tournamentNameDisplay" class="tournament-name"></div>
 
-  <div class="table-container">
-    <table>
-      <thead>
-        <tr>
-          <th></th>
-          <th>Player / Team</th>
-          <th>W</th>
-          <th>D</th>
-          <th>L</th>
-          <th>Points</th>
-          <th>Diff</th>
-        </tr>
-      </thead>
-      <tbody id="leaderboardBody">
-        <!-- Dynamic content -->
-      </tbody>
-    </table>
-  </div>
+<!-- Share -->
+<button id="shareLeaderboardBtn" class="share-btn">Share Leaderboard Link</button>
 
-  <div class="rounds" id="roundsContainer">
-    <!-- Round buttons dynamically added -->
-  </div>
+<!-- Podium for Top 3 -->
+<div id="podiumContainer" class="podium-row"></div>
+
+<!-- Table for remaining players -->
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>Players</th>
+<th>W</th>
+<th>D</th>
+<th>L</th>
+<th>P</th>
+<th>+/-</th>
+</tr>
+</thead>
+<tbody id="leaderboardBody">
+<!-- Remaining players rendered here -->
+</tbody>
+</table>
+</div>
 
 </div>
 
@@ -167,62 +125,100 @@ messagingSenderId:"866905934997",
 appId:"1:866905934997:web:97cb8ebc4ed35f9e41f9c"
 };
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+const db=firebase.database();
 
-let meetId = new URLSearchParams(window.location.search).get('meet');
-if(meetId){
-  db.ref('arena/' + meetId).once('value').then(snapshot => {
-    const data = snapshot.val();
-    if(!data) return;
+let meetId = null;
 
-    const players = data.players.split('\n').filter(p=>p.trim());
-    const matches = data.matches || [];
+// Get meet from URL if passed
+const urlParams = new URLSearchParams(window.location.search);
+if(urlParams.has('meet')) meetId = urlParams.get('meet');
 
-    renderLeaderboard(players, matches);
-  });
-}
-
-function renderLeaderboard(players, matches){
-  const tbody = document.getElementById('leaderboardBody');
-  tbody.innerHTML='';
-
-  players.forEach((player,i)=>{
-    let rankClass='';
-    if(i==0) rankClass='rank-1';
-    else if(i==1) rankClass='rank-2';
-    else if(i==2) rankClass='rank-3';
-
-    const tr = document.createElement('tr');
-    tr.className=rankClass;
-    tr.innerHTML=`
-      <td><span class="crown-emoji">${i<3?'👑':''}</span></td>
-      <td>${player}</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  // Rounds
-  const roundsContainer = document.getElementById('roundsContainer');
-  roundsContainer.innerHTML='';
-  for(let r=1;r<=10;r++){
-    const btn = document.createElement('button');
-    btn.className='round-btn';
-    btn.textContent='Round '+r;
-    roundsContainer.appendChild(btn);
-  }
-}
-
-/* Share Leaderboard */
-function copyLeaderboardLink(){
-  if(!meetId) return alert("No tournament selected");
-  const url = location.href.split('?')[0]+'?meet='+meetId;
+// Share leaderboard
+document.getElementById('shareLeaderboardBtn').onclick = function(){
+  if(!meetId) return alert("No tournament linked");
+  const url = location.href.split('?')[0] + "?meet=" + meetId;
   navigator.clipboard.writeText(url);
-  alert("Leaderboard link copied");
+  alert("Leaderboard link copied!");
+}
+
+// Load data from Firebase
+if(meetId){
+db.ref('arena/' + meetId).once('value').then(snap=>{
+const data = snap.val();
+if(!data) return;
+
+// Display tournament name
+document.getElementById('tournamentNameDisplay').textContent = data.name || 'Tournament';
+
+// Parse players and scores
+let matches = data.matches || [];
+let allPlayers = [];
+
+// Flatten teams for points and add wins/draws/losses for Americano scoring
+matches.forEach(m=>{
+  const scoreA = parseInt(m.scoreA)||0;
+  const scoreB = parseInt(m.scoreB)||0;
+
+  [m.teamA[0], m.teamA[1]].forEach(name=>{
+    if(!allPlayers.find(p=>p.name===name)) allPlayers.push({name, W:0,D:0,L:0,P:0,diff:0});
+    let p = allPlayers.find(p=>p.name===name);
+    p.P += scoreA;
+    p.diff += (scoreA - scoreB);
+    if(scoreA>scoreB) p.W++;
+    else if(scoreA<scoreB) p.L++;
+    else p.D++;
+  });
+  [m.teamB[0], m.teamB[1]].forEach(name=>{
+    if(!allPlayers.find(p=>p.name===name)) allPlayers.push({name, W:0,D:0,L:0,P:0,diff:0});
+    let p = allPlayers.find(p=>p.name===name);
+    p.P += scoreB;
+    p.diff += (scoreB - scoreA);
+    if(scoreB>scoreA) p.W++;
+    else if(scoreB<scoreA) p.L++;
+    else p.D++;
+  });
+});
+
+// Sort descending by points
+allPlayers.sort((a,b)=>b.P - a.P);
+
+// Render Podium
+const podiumContainer = document.getElementById('podiumContainer');
+podiumContainer.innerHTML='';
+const podiumClasses=['first','second','third'];
+for(let i=0;i<3 && i<allPlayers.length;i++){
+  const p = allPlayers[i];
+  let div = document.createElement('div');
+  div.className='podium-player '+podiumClasses[i];
+  div.innerHTML=`
+    <div class="podium-crown">${i===0?'👑':i===1?'👑':'👑'}</div>
+    <div class="player-initials" style="border-color:${i===0?'#ffd700':i===1?'#c0c0c0':'#cd7f32'}">
+      ${p.name.split(' ').map(n=>n[0].toUpperCase()).join('')}
+    </div>
+    <div class="player-name">${p.name}</div>
+    <div class="points">${p.P} pts</div>
+  `;
+  podiumContainer.appendChild(div);
+}
+
+// Render remaining players
+const tbody=document.getElementById('leaderboardBody');
+tbody.innerHTML='';
+allPlayers.forEach((p,i)=>{
+  if(i<3) return; // Skip podium
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td>${i+1}</td>
+    <td>${p.name}</td>
+    <td>${p.W}</td>
+    <td>${p.D}</td>
+    <td>${p.L}</td>
+    <td class="points">${p.P}</td>
+    <td>${p.diff>=0?'+':''}${p.diff}</td>
+  `;
+  tbody.appendChild(tr);
+});
+});
 }
 </script>
 
